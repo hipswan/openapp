@@ -1,3 +1,13 @@
+
+name: Flutter CICD
+
+# This workflow is triggered on pushes to the repository.
+
+on:
+  push:
+    branches:
+    - master
+
 jobs:
   build:
     runs-on: windows-latest
