@@ -10,26 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'beta'
-      - run: flutter config --enable-windows-desktop
-      - run: flutter build windows
-
-  build:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'beta'
-      - run: flutter config --enable-macos-desktop
-      - run: flutter build macos
-
-  build:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: subosito/flutter-action@v2
@@ -37,4 +18,8 @@ jobs:
         channel: 'stable' # or: 'beta' or 'master'
     - run: flutter --version
     - run: flutter build apk
-    - run: flutter build appbundle
+    - uses: actions/upload-artifact@v1
+      with:
+        name: release-apk
+        path: build/app/outputs/apk/release/app-release.apk
+  
