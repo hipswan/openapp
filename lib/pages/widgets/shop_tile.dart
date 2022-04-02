@@ -53,22 +53,24 @@ class ShopTile extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: FittedBox(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      location,
-                      style: locationAndRatingTextStyle,
-                    ),
-                    const Text('⭐️'),
-                    Text(
-                      '$rating',
-                      style: locationAndRatingTextStyle,
-                    ),
-                  ],
-                ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    location,
+                    style: locationAndRatingTextStyle,
+                  ),
+                  const Spacer(),
+                  const Text('\u2B50'),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    '$rating',
+                    style: locationAndRatingTextStyle,
+                  ),
+                ],
               ),
             ),
           ],

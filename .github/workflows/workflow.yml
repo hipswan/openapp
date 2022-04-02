@@ -9,7 +9,8 @@ on:
     - master
 
 jobs:
-  build:
+  build_openapp_android:
+    name: Build OpenApp Android
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

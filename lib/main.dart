@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:openapp/pages/home_page.dart';
+import 'package:openapp/pages/login_page.dart';
+import 'package:openapp/pages/register_page.dart';
 import 'package:openapp/pages/shop_page.dart';
 
 void main() {
@@ -15,14 +17,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'OpenApp',
       theme: ThemeData(
-        fontFamily: 'Helvitica',
-        textTheme: TextTheme(),
+        fontFamily: 'Montserrat',
+        textTheme: const TextTheme(),
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const SafeArea(
-        child: ShopPage(),
+        child: RegisterPage(),
       ),
+      routes: {
+        '/shop': (context) => const ShopPage(),
+        '/home': (context) => const HomePage(),
+      },
     );
   }
 }

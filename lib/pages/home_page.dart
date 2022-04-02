@@ -12,11 +12,32 @@ class HomePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
-        Text(
+        const Text(
           'Top Trending Places',
           style: homePageTextStyle,
         ),
-        Spacer(),
+        const SizedBox(
+          width: 5,
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 3,
+          ),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: Colors.green,
+          ),
+          child: const Text(
+            'New',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        const Spacer(),
         TextButton(
           onPressed: () {},
           child: Text(
@@ -35,7 +56,7 @@ class HomePage extends StatelessWidget {
       (e) => const ShopTile(
         image: 'assets/images/shop1.jpg',
         title: 'Hotel light sky',
-        location: 'Niagara, Buffalo',
+        location: 'Niagara',
         rating: 4.5,
         price: '\$100',
       ),
@@ -109,21 +130,18 @@ class HomePage extends StatelessWidget {
         vertical: 20.0,
       ),
       child: Text(
-        'Reserve spot at your favorite restaurants, barber shop or spa.',
+        'Reserve your spot at your favorite restaurants, barber shop or spa.',
         strutStyle: StrutStyle(
           forceStrutHeight: true,
-          height: 2.2,
+          fontSize: 26,
         ),
 
-        maxLines: 2,
         // strutStyle: StrutStyle(
         //   height: 2,
         // ),
         style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.normal,
-          color: Colors.black,
-          letterSpacing: 1,
+          fontSize: 20,
+          fontFamily: 'Montserrat',
         ),
       ),
     );
@@ -138,17 +156,17 @@ class HomePage extends StatelessWidget {
           vertical: 10.0,
         ),
         decoration: BoxDecoration(
-          color: Color.fromARGB(255, 246, 247, 247),
+          color: secondaryColor,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const TextField(
+        child: TextField(
           decoration: InputDecoration(
-            suffixIcon: Icon(Icons.search),
+            suffixIcon: const Icon(Icons.search),
             hintText: 'where do you want to go?',
             hintStyle: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.grey[600],
             ),
             border: InputBorder.none,
           ),
@@ -170,10 +188,13 @@ class HomePage extends StatelessWidget {
           style: homePageTextStyle,
         ),
         centerTitle: true,
-        shadowColor: Color.fromARGB(128, 32, 147, 255),
+        shadowColor: const Color.fromARGB(128, 32, 147, 255),
         backgroundColor: Colors.white,
-        leading: const Icon(
-          Icons.arrow_back_ios_new_rounded,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           color: Colors.black,
         ),
         shape: const RoundedRectangleBorder(

@@ -1,4 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import '../constant.dart';
+import 'widgets/shop_offer_tile.dart';
 
 class ShopPage extends StatelessWidget {
   const ShopPage({Key? key}) : super(key: key);
@@ -15,88 +19,283 @@ class ShopPage extends StatelessWidget {
         color: Colors.grey,
       ),
     );
-    Widget shopMetaData = Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text(
-              'Hotel light sky',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              '\$100',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+    Widget shopMetaData = Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 20,
         ),
-        Row(
-          children: const [
-            Text(
-              '3 Seats',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text(
+                  'Hotel light sky',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  '\$100',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: const [
+                Text(
+                  '3 Seats',
+                  strutStyle: StrutStyle(
+                    fontSize: 18,
+                    forceStrutHeight: true,
+                  ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  '1 bathroom',
+                  strutStyle: StrutStyle(
+                    fontSize: 18,
+                    forceStrutHeight: true,
+                  ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  'Complimentary Spa',
+                  strutStyle: StrutStyle(
+                    fontSize: 18,
+                    forceStrutHeight: true,
+                  ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                Spacer(),
+                Text(
+                  'per person',
+                  strutStyle: StrutStyle(
+                    fontSize: 18,
+                    forceStrutHeight: true,
+                  ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            )
+          ],
+        ));
+    //Shop Reviews
+    Widget shopReviews = Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 20,
+        horizontal: 10,
+      ),
+      decoration: BoxDecoration(
+        color: secondaryColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('\u2B50\u2B50\u2B50\u2B50\u2B50'),
+              Text.rich(
+                TextSpan(
+                  text: '129 ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Reviews ',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                    TextSpan(
+                      text: '>',
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          // print('Reviews tapped');
+                        },
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+                strutStyle: const StrutStyle(
+                  fontFamily: 'Serif',
+                  fontSize: 18,
+                  forceStrutHeight: true,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          SizedBox(
+            width: 140,
+            height: 40,
+            // color: Colors.black,
+            child: Stack(
+              children: List.generate(
+                6,
+                (index) => Positioned(
+                  left: index * 20,
+                  child: CircleAvatar(
+                    radius: 20,
+                    //white become more visible
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.accents[index],
+                    child: Text('$index'),
+                  ),
+                ),
               ),
             ),
-            Text(
-              '1 bathroom',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+          ),
+        ],
+      ),
+    );
+    //Shop Offers
+    Widget shopOffers = Padding(
+        padding: const EdgeInsets.only(
+          top: 10.0,
+          bottom: 10.0,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            const Text(
+              'What this place offers',
+              style: homePageTextStyle,
             ),
-            Text(
-              'Complimentary Spa',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-            Spacer(),
-            Text(
-              'per person',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
+            const Spacer(),
+            TextButton(
+              onPressed: () {},
+              child: Text(
+                'More',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).primaryColor,
+                  textBaseline: TextBaseline.alphabetic,
+                ),
               ),
             ),
           ],
-        )
+        ));
+
+    Widget shopOfferDetails = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: const [
+        ShopOfferTile(
+          icon: Icons.wifi,
+          title: 'Wifi',
+        ),
+        ShopOfferTile(
+          icon: Icons.pool,
+          title: 'Pool',
+        ),
+        ShopOfferTile(
+          icon: Icons.wash,
+          title: 'Dryer',
+        ),
       ],
     );
 
+    //Description
+    Widget shopDescription = Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 20,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: const [
+          Text(
+            'Description',
+            style: homePageTextStyle,
+          ),
+        ],
+      ),
+    );
+
+    Widget shopDescriptionDetails = Column(
+      children: const [
+        Text(
+          'lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+          textAlign: TextAlign.justify,
+          style: TextStyle(
+            fontSize: 14,
+          ),
+          strutStyle: StrutStyle(
+            fontSize: 16,
+            forceStrutHeight: true,
+          ),
+        ),
+      ],
+    );
+
+    //Main Shop Page
     Widget shopInfo = Positioned(
-      child: Column(
+      child: ListView(
+        physics: const BouncingScrollPhysics(),
         children: [
           shopPics,
           shopMetaData,
+          shopReviews,
+          shopOffers,
+          shopOfferDetails,
+          shopDescription,
+          shopDescriptionDetails,
+          SizedBox(
+            height: maxHeight * 0.2 / 2,
+          )
         ],
       ),
     );
     //book now or like button
     Widget bottomBox = Container(
-      height: maxHeight * 0.2,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white.withOpacity(0.5),
-            Colors.white,
-          ],
-          stops: const [
-            0.2,
-            0.3,
-          ],
-        ),
+      height: maxHeight * 0.15,
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
+        // gradient: LinearGradient(
+        //   begin: Alignment.topCenter,
+        //   end: Alignment.bottomCenter,
+        //   colors: [
+        //     Colors.transparent,
+        //     Colors.white.withOpacity(0.5),
+        //     Colors.white,
+        //   ],
+        //   stops: const [
+        //     0.3,
+        //     0.3,
+        //     0.5,
+        //   ],
+        // ),
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -176,7 +375,7 @@ class ShopPage extends StatelessWidget {
       body: Container(
         width: maxWidth,
         height: maxHeight,
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: 20,
         ),
         child: Stack(
