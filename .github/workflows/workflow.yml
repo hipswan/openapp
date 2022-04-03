@@ -6,7 +6,7 @@ name: Flutter CICD
 on:
   push:
     branches:
-    - master
+    - bfe
 
 jobs:
   build_openapp_android:
