@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
 
@@ -7,6 +9,7 @@ class ShopTile extends StatelessWidget {
   final image;
   final rating;
   final price;
+  final shopName;
 
   const ShopTile(
       {Key? key,
@@ -14,7 +17,8 @@ class ShopTile extends StatelessWidget {
       this.location,
       this.image,
       this.rating,
-      this.price})
+      this.price,
+      this.shopName})
       : super(key: key);
 
   @override
@@ -31,12 +35,22 @@ class ShopTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
+            Center(
               child: SizedBox(
                 height: 125,
                 width: 150,
-                child: Placeholder(
-                  color: Colors.grey,
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: AssetImage(
+                        image,
+                      ),
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      20,
+                    ),
+                  ),
                 ),
               ),
             ),

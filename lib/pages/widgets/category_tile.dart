@@ -14,9 +14,19 @@ class CategoryTile extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 35,
-            child: FlutterLogo(),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: AssetImage(
+                    image,
+                  ),
+                ),
+              ),
+            ),
           ),
           const SizedBox(
             height: 10,

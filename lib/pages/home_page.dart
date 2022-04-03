@@ -1,10 +1,109 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/pages/login_page.dart';
 import 'package:openapp/pages/widgets/category_tile.dart';
 import 'package:openapp/pages/widgets/shop_tile.dart';
 
-class HomePage extends StatelessWidget {
+final shopDetails = [
+  {
+    'shopName': 'Golden Duck',
+    'item': 'Butter Chicken',
+    'image': 'assets/images/chicken.jpeg',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'price': 100,
+    'category': 'Indian',
+  },
+  {
+    'shopName': 'Blacebo',
+    'item': 'Beans',
+    'image': 'assets/images/beans.jpeg',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'price': 100,
+    'category': 'Indian'
+  },
+  {
+    'shopName': 'Basta',
+    'item': 'Noodles',
+    'image': 'assets/images/noodles.jpeg',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'price': 100,
+    'category': 'Italian'
+  },
+];
+
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  handleTakePhoto() async {
+    Navigator.pop(context);
+    XFile? file = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      maxHeight: 675,
+      maxWidth: 960,
+      preferredCameraDevice: CameraDevice.front,
+    );
+    if (file != null)
+      await Navigator.pushNamed(context, '/post', arguments: file.path);
+    else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Select a file to upload'),
+        ),
+      );
+    }
+    // setState(() {
+    //   this.file = File(file!.path);
+    // });
+  }
+
+  handleChooseFromGallery() async {
+    Navigator.pop(context);
+    XFile? file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (file != null)
+      Navigator.pushNamed(context, '/post', arguments: file.path);
+    else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Select a file to upload'),
+        ),
+      );
+    }
+  }
+
+  selectImage(parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text("Create Post"),
+          children: <Widget>[
+            SimpleDialogOption(
+                child: Text("Photo with Camera"), onPressed: handleTakePhoto),
+            SimpleDialogOption(
+                child: Text("Image from Gallery"),
+                onPressed: handleChooseFromGallery),
+            SimpleDialogOption(
+              child: Text("Cancel"),
+              onPressed: () => Navigator.pop(context),
+            )
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,24 +150,27 @@ class HomePage extends StatelessWidget {
         ),
       ],
     );
-    List<Widget> shopTiles = List.generate(
-      10,
-      (e) => const ShopTile(
-        image: 'assets/images/shop1.jpg',
-        title: 'Hotel light sky',
-        location: 'Niagara',
-        rating: 4.5,
-        price: '\$100',
-      ),
-    );
+    List<Widget> shopTiles = shopDetails
+        .map(
+          (e) => ShopTile(
+            image: e['image'],
+            title: e['item'],
+            location: e['location'],
+            rating: e['rating'],
+            price: e['price'],
+            shopName: e['shopName'],
+          ),
+        )
+        .toList();
 
-    List<Widget> categoryList = List.generate(
-      10,
-      (e) => CategoryTile(
-        image: 'assets/images/category1.jpg',
-        title: 'Category $e',
-      ),
-    );
+    List<Widget> categoryList = shopDetails
+        .map(
+          (e) => CategoryTile(
+            image: e['image'],
+            title: e['category'],
+          ),
+        )
+        .toList();
 
     Widget listCategoryTile = Container(
       padding: const EdgeInsets.symmetric(
@@ -130,7 +232,7 @@ class HomePage extends StatelessWidget {
         vertical: 20.0,
       ),
       child: Text(
-        'Reserve your spot at your favorite restaurants, barber shop or spa.',
+        'Book your delicious meal from your favourite Restaurants.',
         strutStyle: StrutStyle(
           forceStrutHeight: true,
           fontSize: 26,
@@ -162,7 +264,7 @@ class HomePage extends StatelessWidget {
         child: TextField(
           decoration: InputDecoration(
             suffixIcon: const Icon(Icons.search),
-            hintText: 'where do you want to go?',
+            hintText: 'What cuisine do you like?',
             hintStyle: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -176,15 +278,17 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          selectImage(context);
+        },
         tooltip: 'Increment',
         child: const Icon(
           Icons.add,
         ),
       ),
       appBar: AppBar(
-        title: const Text(
-          'Welcome, Flutter!',
+        title: Text(
+          'Welcome, ${currentUser!.name}!',
           style: homePageTextStyle,
         ),
         centerTitle: true,

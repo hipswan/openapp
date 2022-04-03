@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "921110142433",
+    "project_id": "dapp-7936d",
+    "storage_bucket": "dapp-7936d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921110142433:android:8748fe2466c2e6ccb206a0",
+        "android_client_info": {
+          "package_name": "com.ascension.bfe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "921110142433-5vmodrucvq8s19nrfjarido5avqtlup9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ascension.bfe",
+            "certificate_hash": "48a9dd9b523b1bb0cc03803a96e89d84c40a8aba"
+          }
+        },
+        {
+          "client_id": "921110142433-oqdps6cm2p7ieprpcrvs7vf7emkp5nhq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPFZe25B6BR-DYpbqHOPs-WLNJt8byyI4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921110142433-oqdps6cm2p7ieprpcrvs7vf7emkp5nhq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,10 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:openapp/controller/web3_controller.dart';
 import 'package:openapp/pages/home_page.dart';
 import 'package:openapp/pages/login_page.dart';
+import 'package:openapp/pages/post_items.dart';
 import 'package:openapp/pages/register_page.dart';
 import 'package:openapp/pages/shop_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:openapp/pages/type_selection.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -22,12 +30,33 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const SafeArea(
-        child: RegisterPage(),
+      home: SafeArea(
+        child: TypeSelection(),
       ),
       routes: {
         '/shop': (context) => const ShopPage(),
         '/home': (context) => const HomePage(),
+        '/seller_signup': (context) => const RegisterPage(),
+        '/buyer_signup': (context) => LoginPage(),
+      },
+      onGenerateRoute: (settings) {
+        // If you push the PassArguments route
+        if (settings.name == '/post') {
+          // Cast the arguments to the correct
+          // type: ScreenArguments.
+          final args = settings.arguments;
+
+          // Then, extract the required data from
+          // the arguments and pass the data to the
+          // correct screen.
+          return MaterialPageRoute(
+            builder: (context) {
+              return PostItem(
+                filePath: args,
+              );
+            },
+          );
+        }
       },
     );
   }

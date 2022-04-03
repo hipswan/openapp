@@ -1,4 +1,4 @@
-package com.example.openapp
+package com.ascension.bfe
 
 import io.flutter.embedding.android.FlutterActivity
 
