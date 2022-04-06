@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:http/http.dart';
 import 'package:openapp/controller/web3_controller.dart';
+import 'package:openapp/pages/widgets/openapp_logo.dart';
 import 'package:web3dart/web3dart.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -87,48 +88,7 @@ class LoginPage extends StatelessWidget {
             ),
             child: ListView(
               children: [
-                Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 32,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 22.0,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: Colors.black,
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Buffalo',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          'FoodEx',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    )),
+                const OpenappLogo(),
                 Form(
                   key: _formKey,
                   child: Column(
