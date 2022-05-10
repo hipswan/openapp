@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/login_page.dart';
 import 'package:openapp/pages/widgets/category_tile.dart';
+import 'package:openapp/pages/widgets/section.dart';
 import 'package:openapp/pages/widgets/shop_tile.dart';
 
 final shopDetails = [
@@ -35,6 +36,66 @@ final shopDetails = [
     'price': 100,
     'category': 'Italian'
   },
+];
+
+final clinicDetails = [
+  {
+    'shopName': 'Minute',
+    'title': 'Dr. Rajesh',
+    'image': 'assets/images/minute.png',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'category': 'Clinic',
+  },
+  {
+    'shopName': 'Entira',
+    'title': 'Dr. John Doe',
+    'image': 'assets/images/entira.png',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'category': 'Clinic',
+  },
+  {
+    'shopName': 'Family',
+    'title': 'Dr. John Doe',
+    'image': 'assets/images/family.png',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'category': 'Clinic'
+  },
+];
+
+final salonDetails = [
+  {
+    'shopName': 'Great Clips',
+    'title': 'Jonny',
+    'image': 'assets/images/greatclips.png',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'category': 'Salon',
+  },
+  {
+    'shopName': 'Teez',
+    'title': 'Fayla',
+    'image': 'assets/images/teez.png',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'category': 'Salon',
+  },
+  {
+    'shopName': 'Hairclub',
+    'title': 'Micheal',
+    'image': 'assets/images/hairclub.png',
+    'location': 'Niagara',
+    'rating': '4.5',
+    'category': 'Salon'
+  },
+];
+
+final categoryDetails = [
+  {'name': 'Restaurant', 'image': 'assets/images/restaurant.png'},
+  {'name': 'Salon', 'image': 'assets/images/salon.png'},
+  {'name': 'Clinic', 'image': 'assets/images/clinic.png'},
 ];
 
 class HomePage extends StatefulWidget {
@@ -107,49 +168,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    Widget topSection = Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        const Text(
-          'Top Trending Places',
-          style: homePageTextStyle,
-        ),
-        const SizedBox(
-          width: 5,
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 3,
-          ),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: Colors.green,
-          ),
-          child: const Text(
-            'New',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
-          ),
-        ),
-        const Spacer(),
-        TextButton(
-          onPressed: () {},
-          child: Text(
-            'View All',
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).primaryColor,
-              textBaseline: TextBaseline.alphabetic,
-            ),
-          ),
-        ),
-      ],
-    );
     List<Widget> shopTiles = shopDetails
         .map(
           (e) => ShopTile(
@@ -163,11 +181,21 @@ class _HomePageState extends State<HomePage> {
         )
         .toList();
 
-    List<Widget> categoryList = shopDetails
+    Widget listShopTile = Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 20,
+      ),
+      height: 225,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: shopTiles,
+      ),
+    );
+    List<Widget> categoryList = categoryDetails
         .map(
           (e) => CategoryTile(
             image: e['image'],
-            title: e['category'],
+            title: e['name'],
           ),
         )
         .toList();
@@ -183,14 +211,53 @@ class _HomePageState extends State<HomePage> {
       ),
     );
 
-    Widget listShopTile = Container(
+    List<Widget> clinicTiles = clinicDetails
+        .map(
+          (e) => ShopTile(
+            image: e['image'],
+            title: e['title'],
+            location: e['location'],
+            rating: e['rating'],
+            price: e['price'],
+            shopName: e['shopName'],
+            category: e['category'],
+          ),
+        )
+        .toList();
+
+    Widget listClinicTile = Container(
       padding: const EdgeInsets.symmetric(
         vertical: 20,
       ),
       height: 225,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        children: shopTiles,
+        children: clinicTiles,
+      ),
+    );
+
+    List<Widget> salonTiles = salonDetails
+        .map(
+          (e) => ShopTile(
+            image: e['image'],
+            title: e['title'],
+            location: e['location'],
+            rating: e['rating'],
+            price: e['price'],
+            shopName: e['shopName'],
+            category: e['category'],
+          ),
+        )
+        .toList();
+
+    Widget listSalonTile = Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 20,
+      ),
+      height: 225,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: salonTiles,
       ),
     );
 
@@ -232,7 +299,7 @@ class _HomePageState extends State<HomePage> {
         vertical: 20.0,
       ),
       child: Text(
-        'Book your delicious meal from your favourite Restaurants.',
+        'Reserve your spot at your favorite restaurant, salon or spa.',
         strutStyle: StrutStyle(
           forceStrutHeight: true,
           fontSize: 26,
@@ -264,7 +331,7 @@ class _HomePageState extends State<HomePage> {
         child: TextField(
           decoration: InputDecoration(
             suffixIcon: const Icon(Icons.search),
-            hintText: 'What cuisine do you like?',
+            hintText: 'search for your favourite place?',
             hintStyle: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -288,7 +355,7 @@ class _HomePageState extends State<HomePage> {
       ),
       appBar: AppBar(
         title: Text(
-          'Welcome, ${currentUser!.name}!',
+          'Welcome!',
           style: homePageTextStyle,
         ),
         centerTitle: true,
@@ -326,8 +393,16 @@ class _HomePageState extends State<HomePage> {
           children: [
             introText,
             searchWidget,
-            topSection,
+            Section(
+                sectionName: 'Top Trending Places',
+                tagColor: Colors.green,
+                tagName: 'New',
+                onPressed: () {}),
             listShopTile,
+            Section(sectionName: 'Explore Clinics', onPressed: () {}),
+            listClinicTile,
+            Section(sectionName: 'Explore Salon', onPressed: () {}),
+            listSalonTile,
             exploreCategories,
             listCategoryTile,
           ],

@@ -10,7 +10,7 @@ class TypeSelection extends StatefulWidget {
 }
 
 class _TypeSelectionState extends State<TypeSelection> {
-  var _value = 0;
+  var _value = 1;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,11 +66,11 @@ class _TypeSelectionState extends State<TypeSelection> {
             bottom: 30,
             child: GestureDetector(
               onTap: () async {
-                Navigator.of(context).pop();
+                // Navigator.of(context).pop();
                 if (_value == 0) {
                   Navigator.of(context).pushNamed('/buyer_signup');
                 } else if (_value == 1) {
-                  Navigator.of(context).pushNamed('/seller_signup');
+                  Navigator.of(context).pushNamed('/business_home');
                 }
               },
               child: Container(

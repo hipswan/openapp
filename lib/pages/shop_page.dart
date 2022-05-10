@@ -5,7 +5,11 @@ import '../constant.dart';
 import 'widgets/shop_offer_tile.dart';
 
 class ShopPage extends StatelessWidget {
-  const ShopPage({Key? key}) : super(key: key);
+  final shopName;
+  final category;
+  final image;
+  const ShopPage({Key? key, this.shopName, this.category, this.image})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +19,19 @@ class ShopPage extends StatelessWidget {
     Widget shopPics = SizedBox(
       width: maxWidth - 40,
       height: 200,
-      child: const Placeholder(
-        color: Colors.grey,
+      child: SizedBox(
+        height: 125,
+        width: 150,
+        child: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: AssetImage(
+                image,
+              ),
+            ),
+          ),
+        ),
       ),
     );
     Widget shopMetaData = Padding(
@@ -27,16 +42,16 @@ class ShopPage extends StatelessWidget {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children: [
                 Text(
-                  'Hotel light sky',
+                  shopName,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
-                  '\$100',
+                  '\$\$\$',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w500,
@@ -45,37 +60,9 @@ class ShopPage extends StatelessWidget {
               ],
             ),
             Row(
-              children: const [
+              children: [
                 Text(
                   '3 Seats',
-                  strutStyle: StrutStyle(
-                    fontSize: 18,
-                    forceStrutHeight: true,
-                  ),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                Text(
-                  '1 bathroom',
-                  strutStyle: StrutStyle(
-                    fontSize: 18,
-                    forceStrutHeight: true,
-                  ),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                Text(
-                  'Complimentary Spa',
                   strutStyle: StrutStyle(
                     fontSize: 18,
                     forceStrutHeight: true,

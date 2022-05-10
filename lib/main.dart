@@ -1,18 +1,21 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:openapp/controller/web3_controller.dart';
+import 'package:openapp/pages/business_home.dart';
+import 'package:openapp/pages/business_page.dart';
 import 'package:openapp/pages/home_page.dart';
 import 'package:openapp/pages/login_page.dart';
 import 'package:openapp/pages/post_items.dart';
 import 'package:openapp/pages/register_page.dart';
 import 'package:openapp/pages/shop_page.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:openapp/pages/type_selection.dart';
+import 'package:openapp/pages/widgets/hex_color.dart';
+
+import 'pages/widgets/custom_slider_rect.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
   runApp(const MyApp());
 }
 
@@ -28,7 +31,32 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Montserrat',
         textTheme: const TextTheme(),
         primarySwatch: Colors.blue,
+        bottomAppBarColor: Colors.blue,
+      ).copyWith(
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        primaryColor: Colors.blue,
+        secondaryHeaderColor: Colors.blue,
+        sliderTheme: SliderThemeData(
+          inactiveTrackColor: HexColor('#707070'),
+          activeTrackColor: HexColor('#707070'),
+          trackShape: RectangularSliderTrackShape(),
+          trackHeight: 4.0,
+          thumbShape: CustomSliderThumbRect(
+            thumbHeight: 30.0,
+            thumbRadius: 5.0,
+          ),
+          overlayShape: RoundSliderOverlayShape(overlayRadius: 30.0),
+          overlayColor: HexColor('#FEC13C').withAlpha(50),
+          thumbColor: Colors.white,
+          tickMarkShape: RoundSliderTickMarkShape(),
+          activeTickMarkColor: HexColor('#FEC13C'),
+          inactiveTickMarkColor: Colors.white,
+          valueIndicatorShape: RectangularSliderValueIndicatorShape(),
+          valueIndicatorColor: Colors.redAccent,
+          valueIndicatorTextStyle: TextStyle(
+            color: Colors.white,
+          ),
+        ),
       ),
       home: SafeArea(
         child: TypeSelection(),
@@ -38,6 +66,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/seller_signup': (context) => const RegisterPage(),
         '/buyer_signup': (context) => LoginPage(),
+        '/business_home': (context) => BusinessHome(),
+        '/business': (context) => const BusinessPage(),
       },
       onGenerateRoute: (settings) {
         // If you push the PassArguments route

@@ -5,77 +5,24 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:http/http.dart';
-import 'package:openapp/controller/web3_controller.dart';
 import 'package:openapp/pages/widgets/openapp_logo.dart';
-import 'package:web3dart/web3dart.dart';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../model/user.dart';
-
-User? currentUser;
-Web3Client web3Client = Web3Client(
-  "https://ropsten.infura.io/v3/d51b8ae11bb34cdf9ecc3fc4b65cea07",
-  Client(),
-);
-EthPrivateKey cred = EthPrivateKey.fromHex(
-    "0xfe6c8e3bfc0758bed739cb6f1594402db1be0f2301c781ba8403b1a713ba5f9c");
-final web3Controller = Web3Controller(ethClient: web3Client, privateKey: cred);
 
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
   final _formKey = GlobalKey<FormState>();
-  var userType = UserType.buyer.index;
   final name = TextEditingController(text: "Atul Singh");
   final emailId = TextEditingController(text: "atulsingh158@gmail.com");
   final password = TextEditingController(text: "Iceage@123");
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  final account =
-      TextEditingController(text: "0x059Ac2d11b1B59B1e66E23D885a8E3d6b3c5Ca63");
 
-  onSubmitForm(context, CollectionReference usersRef) async {
-    if (_formKey.currentState!.validate()) {
-      DocumentSnapshot doc = await usersRef.doc(account.text).get();
-      if (!doc.exists) {
-        final response = await web3Controller
-            .submit("UserReg", [name.text, BigInt.from(userType)]);
-        await usersRef.doc(account.text).set({
-          'name': name.text, // John Doe
-          'account': account.text, // Stokes and Sons
-          'emailId': emailId.text,
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'userType': userType == 0 ? 'buyer' : 'seller',
-          'transaction_hash': response.toString(),
-          // 42
-        });
-
-        currentUser = User.fromDocument(doc);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Successfully Registered'),
-          ),
-        );
-      } else {
-        currentUser = User.fromDocument(doc);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Account already registered as ${(doc.data() as Map)['userType']}'),
-          ),
-        );
-      }
-
-      Navigator.pushNamed(context, '/home');
-    }
+  onSubmitForm(context) async {
+    Navigator.pushNamed(context, '/home');
   }
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference usersRef =
-        FirebaseFirestore.instance.collection('users');
-    CollectionReference postsRef =
-        FirebaseFirestore.instance.collection('posts');
-
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
@@ -128,15 +75,17 @@ class LoginPage extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
-                          controller: account,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return 'Please enter some text';
-                            }
-                            return null;
-                          },
                           decoration: const InputDecoration(
-                            labelText: 'Account',
+                            labelText: 'Password',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Confirm Password',
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -225,7 +174,7 @@ class LoginPage extends StatelessWidget {
             bottom: 30,
             child: GestureDetector(
               onTap: () async {
-                await onSubmitForm(context, usersRef);
+                await onSubmitForm(context);
               },
               child: Container(
                 width: 70,

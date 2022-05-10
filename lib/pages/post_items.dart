@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,20 +12,18 @@ import 'package:openapp/pages/login_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as Im;
 import 'package:uuid/uuid.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 import '../model/user.dart';
 
-CollectionReference sellerItemsRef =
-    FirebaseFirestore.instance.collection('sellerItems');
-firebase_storage.Reference? storageRef;
+// CollectionReference sellerItemsRef =
+//     FirebaseFirestore.instance.collection('sellerItems');
+// firebase_storage.Reference? storageRef;
 
 class PostItem extends StatefulWidget {
   // final User user = User(
   //     account: '0x059Ac2d11b1B59B1e66E23D885a8E3d6b3c5Ca63',
   //     name: 'atul',
   //     userType: 'seller');
-  final User user = currentUser!;
   final filePath;
   PostItem({Key? key, required this.filePath}) : super(key: key);
 
@@ -90,60 +88,20 @@ class _PostItemState extends State<PostItem>
     });
   }
 
-  Future<String> uploadImage(imageFile) async {
-    UploadTask uploadTask =
-        storageRef!.child("post_$postId.jpg").putFile(imageFile);
-    TaskSnapshot storageSnap = uploadTask.snapshot;
-    String downloadUrl = await storageSnap.ref.getDownloadURL();
-    return downloadUrl;
-  }
-
-  createPostInFirestore({
-    required String mediaUrl,
-    required String itemName,
-    required String itemPrice,
-    required String itemDescription,
-  }) async {
-    final response = await web3Controller.submit(
-      "FoodItemReg",
-      [
-        itemName,
-        BigInt.from(int.parse(itemPrice)),
-        BigInt.from(
-          1,
-        ),
-      ],
-    );
-
-    sellerItemsRef
-        .doc(widget.user.account)
-        .collection("sellerItems")
-        .doc(postId)
-        .set({
-      "postId": postId,
-      "ownerId": widget.user.account,
-      "username": widget.user.name,
-      "mediaUrl": mediaUrl,
-      "itemName": itemName,
-      "itemPrice": itemPrice,
-      "timestamp": FieldValue.serverTimestamp(),
-      "transaction_hash": response.toLowerCase(),
-      "likes": {},
-    });
-  }
+  // Future<String> uploadImage(imageFile) async {
+  //   UploadTask uploadTask =
+  //       storageRef!.child("post_$postId.jpg").putFile(imageFile);
+  //   TaskSnapshot storageSnap = uploadTask.snapshot;
+  //   String downloadUrl = await storageSnap.ref.getDownloadURL();
+  //   return downloadUrl;
+  // }
 
   handleSubmit() async {
     setState(() {
       isUploading = true;
     });
     await compressImage();
-    String mediaUrl = await uploadImage(file);
-    createPostInFirestore(
-      mediaUrl: mediaUrl,
-      itemName: itemName.text,
-      itemPrice: itemPrice.text,
-      itemDescription: itemDescription.text,
-    );
+    // String mediaUrl = await uploadImage(file);
     itemName.clear();
     itemPrice.clear();
     itemDescription.clear();
@@ -203,6 +161,12 @@ class _PostItemState extends State<PostItem>
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: TextFormField(
                         controller: itemName,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
                         decoration: InputDecoration(
                           labelText: 'Item Name',
                           border: OutlineInputBorder(),
@@ -213,6 +177,12 @@ class _PostItemState extends State<PostItem>
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: TextFormField(
                         controller: itemPrice,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
                         decoration: InputDecoration(
                           labelText: 'Price per Item',
                           border: OutlineInputBorder(),
@@ -227,6 +197,12 @@ class _PostItemState extends State<PostItem>
                         maxLengthEnforcement:
                             MaxLengthEnforcement.truncateAfterCompositionEnds,
                         controller: itemDescription,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
                         decoration: InputDecoration(
                           labelText: 'Item Description',
                           border: OutlineInputBorder(),
@@ -299,7 +275,6 @@ class _PostItemState extends State<PostItem>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    storageRef = firebase_storage.FirebaseStorage.instance.ref();
 
     return buildUploadForm();
   }

@@ -25,7 +25,7 @@ class OpenappLogo extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                'Buffalo',
+                'Open',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 32,
@@ -38,7 +38,7 @@ class OpenappLogo extends StatelessWidget {
             width: 10,
           ),
           Text(
-            'FoodEx',
+            'App',
             style: TextStyle(
               color: Colors.black,
               fontSize: 32,

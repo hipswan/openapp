@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
 
+import '../shop_page.dart';
+
 class ShopTile extends StatelessWidget {
   final title;
   final location;
@@ -10,22 +12,32 @@ class ShopTile extends StatelessWidget {
   final rating;
   final price;
   final shopName;
-
-  const ShopTile(
-      {Key? key,
-      this.title,
-      this.location,
-      this.image,
-      this.rating,
-      this.price,
-      this.shopName})
-      : super(key: key);
+  final category;
+  const ShopTile({
+    Key? key,
+    this.title,
+    this.location,
+    this.image,
+    this.rating,
+    this.price,
+    this.shopName,
+    this.category,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/shop');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ShopPage(
+              shopName: shopName,
+              category: category,
+              image: image,
+            ),
+          ),
+        );
       },
       child: Container(
         width: 150,
@@ -36,21 +48,84 @@ class ShopTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: SizedBox(
-                height: 125,
-                width: 150,
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: AssetImage(
-                        image,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  children: [
+                    SizedBox(
+                      height: 125,
+                      width: 150,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: AssetImage(
+                              image,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    borderRadius: BorderRadius.circular(
-                      20,
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      width: 55,
+                      height: 30,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black45,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(
+                              20,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            const Text('\u2B50'),
+                            Text(
+                              '$rating',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    Positioned(
+                      left: 0,
+                      bottom: 0,
+                      height: 30,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black45,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(
+                              20,
+                            ),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$title',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -59,33 +134,16 @@ class ShopTile extends StatelessWidget {
             ),
             FittedBox(
               child: Text(
-                title,
+                shopName,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    location,
-                    style: locationAndRatingTextStyle,
-                  ),
-                  const Spacer(),
-                  const Text('\u2B50'),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    '$rating',
-                    style: locationAndRatingTextStyle,
-                  ),
-                ],
-              ),
+            Text(
+              location,
+              style: locationAndRatingTextStyle,
             ),
           ],
         ),

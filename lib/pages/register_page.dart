@@ -1,15 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_stepper/cupertino_stepper.dart';
 import 'package:http/http.dart';
-import 'package:openapp/controller/web3_controller.dart';
 import 'package:openapp/pages/widgets/form_page.dart';
-import 'package:web3dart/web3dart.dart';
-
-CollectionReference usersRef = FirebaseFirestore.instance.collection('users');
-CollectionReference sellerDetailsRef =
-    FirebaseFirestore.instance.collection('sellerDetails');
+import 'package:openapp/pages/widgets/openapp_logo.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -22,9 +16,11 @@ class _RegisterPageState extends State<RegisterPage> {
   var currentStep = 0;
   final firstName = TextEditingController();
   final lastName = TextEditingController();
-  final shopName = TextEditingController();
-  final account =
-      TextEditingController(text: '0x059Ac2d11b1B59B1e66E23D885a8E3d6b3c5Ca63');
+  final email = TextEditingController();
+  final password = TextEditingController();
+  final businessName = TextEditingController();
+  final businessLocation = TextEditingController();
+
   var daysOperating = {
     'Mon': {'active': false, 'from': '00:00', 'to': '00:00'},
     'Tue': {'active': false, 'from': '00:00', 'to': '00:00'},
@@ -37,7 +33,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final canCancel = currentStep > 0;
-    final canContinue = currentStep < 2;
+    final canContinue = currentStep < 3;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -45,201 +41,250 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         centerTitle: true,
       ),
-      body: CupertinoStepper(
-        type: StepperType.vertical,
-        currentStep: currentStep,
-        onStepTapped: (step) => setState(() => currentStep = step),
-        onStepCancel: canCancel ? () => setState(() => --currentStep) : null,
-        onStepContinue: canContinue
-            ? () async {
-                if (currentStep == 0) {
-                  setState(() => ++currentStep);
-                } else if (currentStep == 1) {
-                  final web3Controller = Web3Controller(
-                      ethClient: Web3Client(
-                        "https://ropsten.infura.io/v3/d51b8ae11bb34cdf9ecc3fc4b65cea07",
-                        Client(),
-                      ),
-                      privateKey: EthPrivateKey.fromHex(
-                          "0xfe6c8e3bfc0758bed739cb6f1594402db1be0f2301c781ba8403b1a713ba5f9c"));
-
-                  DocumentSnapshot doc = await usersRef.doc(account.text).get();
-                  if (!doc.exists) {
-                    final response = await web3Controller.submit("UserReg",
-                        ['${firstName.text} ${lastName.text}', BigInt.from(1)]);
-                    await usersRef.doc(account.text).set({
-                      'name': '${firstName.text} ${lastName.text}', // John Doe
-                      'account': account.text, // Stokes and Sons
-
-                      'timestamp': DateTime.now().millisecondsSinceEpoch,
-                      'userType': 'seller',
-                      'transaction_hash': response.toString(),
-                      // 42
-                    });
-                    await sellerDetailsRef.doc(account.text).set({
-                      'daysOperating': daysOperating,
-                      'shopName': shopName.text,
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Seller Successfully Registered'),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('''Seller's Account already exists'''),
-                      ),
-                    );
-                  }
-                }
-              }
-            : null,
-        steps: [
-          _buildStep(
-            title: Text('Personal Details'),
-            isActive: 0 == currentStep,
-            state: 0 == currentStep
-                ? StepState.editing
-                : 0 < currentStep
-                    ? StepState.complete
-                    : StepState.indexed,
-            subtitle: 'Enter your personal details',
-            content: Form(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: TextFormField(
-                      controller: firstName,
-                      decoration: InputDecoration(
-                        labelText: 'First Name',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: TextFormField(
-                      controller: lastName,
-                      decoration: InputDecoration(
-                        labelText: 'Last Name',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: TextFormField(
-                      controller: shopName,
-                      decoration: InputDecoration(
-                        labelText: 'Shop Name',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: TextFormField(
-                      controller: account,
-                      decoration: InputDecoration(
-                        labelText: 'Account',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          _buildStep(
-              title: Text('Business Operating Hours'),
-              isActive: 1 == currentStep,
-              state: 1 == currentStep
-                  ? StepState.editing
-                  : 1 < currentStep
-                      ? StepState.complete
-                      : StepState.indexed,
-              subtitle: 'Enter your business operating hours',
-              content: Wrap(
-                children: daysOperating.entries.map((element) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
+      body: Column(
+        children: [
+          OpenappLogo(),
+          Expanded(
+            child: CupertinoStepper(
+              type: StepperType.vertical,
+              currentStep: currentStep,
+              onStepTapped: (step) => setState(() => currentStep = step),
+              onStepCancel:
+                  canCancel ? () => setState(() => --currentStep) : null,
+              onStepContinue: canContinue
+                  ? () async {
+                      if (currentStep == 2) {
+                        Navigator.pushNamed(context, '/business');
+                      } else
+                        setState(() => ++currentStep);
+                    }
+                  : null,
+              steps: [
+                _buildStep(
+                  title: Text('Personal Details'),
+                  isActive: 0 == currentStep,
+                  state: 0 == currentStep
+                      ? StepState.editing
+                      : 0 < currentStep
+                          ? StepState.complete
+                          : StepState.indexed,
+                  subtitle: 'Enter your personal details',
+                  content: Form(
+                    child: Column(
                       children: [
-                        ChoiceChip(
-                          label: SizedBox(
-                              height: 20,
-                              width: 35,
-                              child: Center(child: Text('${element.key}'))),
-                          selected: element.value['active'] as bool,
-                          labelStyle: TextStyle(
-                            color: Colors.white,
-                          ),
-                          selectedColor: Colors.blue,
-                          onSelected: (bool selected) {
-                            setState(() {
-                              daysOperating[element.key]!['active'] = selected;
-                              daysOperating[element.key]!['from'] = '00:00';
-                              daysOperating[element.key]!['to'] = '00:00';
-                            });
-                          },
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: TextFormField(
-                            controller: TextEditingController(
-                                text: element.value['from'] as String),
-                            enabled: element.value['active'] as bool,
-                            keyboardType: TextInputType.none,
-                            onTap: () async {
-                              await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              ).then((value) {
-                                setState(() {
-                                  daysOperating[element.key]!['from'] =
-                                      '${value!.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-                                });
-                              });
-                            },
+                            controller: firstName,
                             decoration: InputDecoration(
+                              labelText: 'First Name',
                               border: OutlineInputBorder(),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: TextFormField(
-                            controller: TextEditingController(
-                                text: element.value['to'] as String),
-                            enabled: element.value['active'] as bool,
-                            keyboardType: TextInputType.none,
-                            onTap: () async {
-                              await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              ).then((value) {
-                                setState(() {
-                                  daysOperating[element.key]!['to'] =
-                                      '${value!.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-                                });
-                              });
-                            },
+                            controller: lastName,
                             decoration: InputDecoration(
+                              labelText: 'Last Name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            controller: email,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            controller: password,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
                               border: OutlineInputBorder(),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  );
-                }).toList(),
-              )),
+                  ),
+                ),
+                _buildStep(
+                  title: Text('Business Details'),
+                  isActive: 1 == currentStep,
+                  state: 1 == currentStep
+                      ? StepState.editing
+                      : 1 < currentStep
+                          ? StepState.complete
+                          : StepState.indexed,
+                  subtitle: 'Enter your business details',
+                  content: Form(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            controller: firstName,
+                            decoration: InputDecoration(
+                              labelText: 'Name of Business',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            controller: businessName,
+                            decoration: InputDecoration(
+                              labelText: 'phone number',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: DropdownButtonFormField(
+                            items: [
+                              DropdownMenuItem(
+                                  child: Text('Restaurant'),
+                                  value: 'Restaurant'),
+                              DropdownMenuItem(
+                                  child: Text('Salon'), value: 'Salon'),
+                              DropdownMenuItem(
+                                  child: Text('Clinic'), value: 'Clinic'),
+                            ],
+                            onChanged: (value) {},
+                            decoration: InputDecoration(
+                              labelText: 'Select Category',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            controller: businessLocation,
+                            decoration: InputDecoration(
+                              labelText: 'State, City',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            controller: password,
+                            decoration: InputDecoration(
+                              labelText: 'Zip/Postal Code',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                _buildStep(
+                    title: Text('Business Operating Hours'),
+                    isActive: 2 == currentStep,
+                    state: 2 == currentStep
+                        ? StepState.editing
+                        : 2 < currentStep
+                            ? StepState.complete
+                            : StepState.indexed,
+                    subtitle: 'Enter your business operating hours',
+                    content: Wrap(
+                      children: daysOperating.entries.map((element) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              ChoiceChip(
+                                label: SizedBox(
+                                    height: 20,
+                                    width: 35,
+                                    child:
+                                        Center(child: Text('${element.key}'))),
+                                selected: element.value['active'] as bool,
+                                labelStyle: TextStyle(
+                                  color: Colors.white,
+                                ),
+                                selectedColor: Colors.blue,
+                                onSelected: (bool selected) {
+                                  setState(() {
+                                    daysOperating[element.key]!['active'] =
+                                        selected;
+                                    daysOperating[element.key]!['from'] =
+                                        '00:00';
+                                    daysOperating[element.key]!['to'] = '00:00';
+                                  });
+                                },
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: TextEditingController(
+                                      text: element.value['from'] as String),
+                                  enabled: element.value['active'] as bool,
+                                  keyboardType: TextInputType.none,
+                                  onTap: () async {
+                                    await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.now(),
+                                    ).then((value) {
+                                      setState(() {
+                                        daysOperating[element.key]!['from'] =
+                                            '${value!.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+                                      });
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: TextEditingController(
+                                      text: element.value['to'] as String),
+                                  enabled: element.value['active'] as bool,
+                                  keyboardType: TextInputType.none,
+                                  onTap: () async {
+                                    await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.now(),
+                                    ).then((value) {
+                                      setState(() {
+                                        daysOperating[element.key]!['to'] =
+                                            '${value!.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+                                      });
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    )),
+              ],
+            ),
+          ),
         ],
       ),
     );
