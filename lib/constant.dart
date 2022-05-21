@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'pages/widgets/hex_color.dart';
+
 Color backIconColor = Colors.black;
 
 const homePageTextStyle = TextStyle(
@@ -8,8 +10,8 @@ const homePageTextStyle = TextStyle(
   color: Colors.black,
 );
 const homePageColor = Colors.white;
-const secondaryColor = Color.fromARGB(255, 246, 247, 247);
-
+var secondaryColor = HexColor('#143F6B');
+var thirdColor = HexColor('#FFEDD3');
 const locationAndRatingTextStyle = TextStyle(
   fontSize: 14,
   color: Color.fromARGB(255, 169, 166, 166),

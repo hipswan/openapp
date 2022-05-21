@@ -226,6 +226,28 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
                 ),
               ),
             ),
+            ListTile(
+              contentPadding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
+              leading: const Text(''),
+              title: TextField(
+                // controller: TextEditingController(
+                //   text: 'Staff details',
+                // ),
+                onChanged: (String value) {
+                  _subject = value;
+                },
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                style: TextStyle(
+                    fontSize: 16,
+                    color: defaultColor,
+                    fontWeight: FontWeight.w400),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Add Staff Details',
+                ),
+              ),
+            ),
             const Divider(
               height: 1.0,
               thickness: 1,

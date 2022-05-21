@@ -2,11 +2,17 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:openapp/model/business.dart';
 import 'package:openapp/pages/widgets/appointment_editor.dart';
 import 'package:openapp/pages/widgets/custom_animated_navigation_bar.dart';
+import 'package:openapp/pages/widgets/hex_color.dart';
+import 'package:openapp/pages/widgets/user_drawer.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:intl/intl.dart' show DateFormat;
+
+import 'business_services.dart';
+import 'business_staff.dart';
 
 class BusinessHome extends StatefulWidget {
   const BusinessHome({Key? key}) : super(key: key);
@@ -18,12 +24,14 @@ class BusinessHome extends StatefulWidget {
 class _BusinessHomeState extends State<BusinessHome> {
   late List<String> _subjectCollection;
   late List<Appointment> _appointments;
+  late List<Appointment> _appointments2;
+
   late List<Color> _colorCollection;
   late List<String> _colorNames;
   Color _inactiveColor = Colors.white;
   int _selectedColorIndex = 0;
   late List<DateTime> _visibleDates;
-  int _currentIndex = 0;
+  int _currentIndex = 1;
   late _DataSource _events;
   Appointment? _selectedAppointment;
   bool _isAllDay = false;
@@ -31,6 +39,7 @@ class _BusinessHomeState extends State<BusinessHome> {
   final ScrollController controller = ScrollController();
   final CalendarController calendarController = CalendarController();
   bool allowDragAndDrop = false;
+  Business _business = Business.create();
 
   /// Global key used to maintain the state,
   /// when we change the parent of the widget
@@ -47,12 +56,25 @@ class _BusinessHomeState extends State<BusinessHome> {
   @override
   void initState() {
     calendarController.view = _view;
-    _appointments = _getAppointmentDetails();
-    _events = _DataSource(_appointments);
+    getBusinessDetails();
+    _appointments2 = _getAppointmentDetails();
+    // _events = _DataSource(_appointments);
     _selectedAppointment = null;
     _selectedColorIndex = 0;
     _subject = '';
     super.initState();
+  }
+
+  getBusinessDetails() async {
+    await _business.createBusiness();
+    Business business = await _business.getBusinessDetails();
+    _business.businessStreamController.sink.add(business);
+    Business appointments = await _business.getBusinessAppointments();
+    _business.businessStreamController.sink.add(appointments);
+    Business services = await _business.getBusinessServices();
+    _business.businessStreamController.sink.add(services);
+    Business staff = await _business.getBusinessStaffs();
+    _business.businessStreamController.sink.add(staff);
   }
 
   /// Returns the month name based on the month value passed from date.
@@ -91,7 +113,8 @@ class _BusinessHomeState extends State<BusinessHome> {
     return Stack(
       children: <Widget>[
         Image(
-            image: ExactAssetImage('assets/images/' + monthName + '.png'),
+            image:
+                ExactAssetImage('assets/images/calendar/' + monthName + '.png'),
             fit: BoxFit.cover,
             width: details.bounds.width,
             height: details.bounds.height),
@@ -111,21 +134,192 @@ class _BusinessHomeState extends State<BusinessHome> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: getBody(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => {
-          setState(() {
-            _view = CalendarView.week;
-            allowDragAndDrop = !allowDragAndDrop;
-          })
-        },
-        child: Icon(Icons.edit),
+    Widget _calendar({_DataSource? events}) {
+      // _events = _DataSource(_appointments2);
+      return Theme(
+        /// The key set here to maintain the state,
+        ///  when we change the parent of the widget
+
+        key: _globalKey,
+        data: ThemeData().copyWith(
+            colorScheme:
+                ThemeData().colorScheme.copyWith(secondary: Colors.blue)),
+        child: _getAppointmentEditorCalendar(calendarController, _events,
+            _onCalendarTapped, _onViewChanged, scheduleViewBuilder),
+      );
+    }
+
+    final double _screenHeight = MediaQuery.of(context).size.height;
+
+    return SafeArea(
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        drawer: UserDrawer(),
+        appBar: AppBar(
+          title: Text('Welcome!'),
+          centerTitle: true,
+          backgroundColor: Colors.redAccent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(10),
+            ),
+          ),
+        ),
+        body: StreamBuilder<Object>(
+            stream: _business.businessStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                Business business = snapshot.data as Business;
+                _business.copyFrom(business);
+
+                _appointments =
+                    getBusinessAppointments(_business.businessAppointments);
+
+                _events = _DataSource(_appointments);
+
+                return calendarController.view == CalendarView.month
+                    ? Scrollbar(
+                        isAlwaysShown: true,
+                        controller: controller,
+                        child: ListView(
+                          controller: controller,
+                          children: <Widget>[
+                            Container(
+                              color: Colors.white,
+                              height: 600,
+                              child: _calendar(events: _events),
+                            )
+                          ],
+                        ))
+                    : Container(
+                        color: Colors.white,
+                        child: _calendar(
+                          events: _events,
+                        ),
+                      );
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            }),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: HexColor('#143F6B'),
+          onPressed: () => {
+            setState(
+              () {
+                _view = CalendarView.week;
+                allowDragAndDrop = !allowDragAndDrop;
+              },
+            )
+          },
+          child: Icon(
+            Icons.edit,
+            color: Colors.white,
+          ),
+        ),
+        // bottomNavigationBar: _buildBottomBar(),
       ),
-      bottomNavigationBar: _buildBottomBar(),
     );
+  }
+
+  List<Appointment> getBusinessAppointments(businessAppointment) {
+    if (businessAppointment == null) {
+      return [];
+    }
+    final List<Appointment> _appointments = <Appointment>[];
+    _colorCollection = <Color>[];
+    _colorCollection.add(const Color(0xFF3D4FB5));
+
+    for (int i = 0; i < businessAppointment.length; i++) {
+      _appointments.add(Appointment(
+        startTime: DateTime.now(),
+        endTime: DateTime.now(),
+        color: _colorCollection[i],
+        startTimeZone: '',
+        endTimeZone: '',
+        notes: '',
+        isAllDay: false,
+        subject: 'Subject $i',
+      ));
+    }
+
+    _colorNames = <String>[];
+    _colorNames.add('Green');
+    _colorNames.add('Purple');
+    _colorNames.add('Red');
+    _colorNames.add('Orange');
+    _colorNames.add('Caramel');
+    _colorNames.add('Light Green');
+    _colorNames.add('Blue');
+    _colorNames.add('Peach');
+    _colorNames.add('Gray');
+    return _appointments;
+  }
+
+  /// Creates the required appointment details as a list, and created the data
+  /// source for calendar with required information.
+  List<Appointment> _getAppointmentDetails() {
+    final List<Appointment> appointmentCollection = <Appointment>[];
+    _subjectCollection = <String>[];
+    _subjectCollection.add('Tattoo Removal');
+    _subjectCollection.add('Haircut');
+    _subjectCollection.add('Medical appointment');
+    _subjectCollection.add('Consulting');
+    _subjectCollection.add('Support');
+    _subjectCollection.add('Therapy');
+    _subjectCollection.add('Restaurant');
+    _subjectCollection.add('Doctor');
+    _subjectCollection.add('Pet Care');
+    _subjectCollection.add('Performance Check');
+
+    _colorCollection = <Color>[];
+    _colorCollection.add(const Color(0xFF0F8644));
+    _colorCollection.add(const Color(0xFF8B1FA9));
+    _colorCollection.add(const Color(0xFFD20100));
+    _colorCollection.add(const Color(0xFFFC571D));
+    _colorCollection.add(const Color(0xFF85461E));
+    _colorCollection.add(const Color(0xFF36B37B));
+    _colorCollection.add(const Color(0xFF3D4FB5));
+    _colorCollection.add(const Color(0xFFE47C73));
+    _colorCollection.add(const Color(0xFF636363));
+
+    _colorNames = <String>[];
+    _colorNames.add('Green');
+    _colorNames.add('Purple');
+    _colorNames.add('Red');
+    _colorNames.add('Orange');
+    _colorNames.add('Caramel');
+    _colorNames.add('Light Green');
+    _colorNames.add('Blue');
+    _colorNames.add('Peach');
+    _colorNames.add('Gray');
+
+    final DateTime today = DateTime.now();
+    final Random random = Random();
+    for (int month = -1; month < 2; month++) {
+      for (int day = -5; day < 5; day++) {
+        for (int hour = 9; hour < 18; hour += 5) {
+          appointmentCollection.add(Appointment(
+            startTime: today
+                .add(Duration(days: (month * 30) + day))
+                .add(Duration(hours: hour)),
+            endTime: today
+                .add(Duration(days: (month * 30) + day))
+                .add(Duration(hours: hour + 2)),
+            color: _colorCollection[random.nextInt(9)],
+            startTimeZone: '',
+            endTimeZone: '',
+            notes: '',
+            isAllDay: false,
+            subject: _subjectCollection[random.nextInt(7)],
+          ));
+        }
+      }
+    }
+
+    return appointmentCollection;
   }
 
   Widget getBody() {
@@ -142,7 +336,7 @@ class _BusinessHomeState extends State<BusinessHome> {
     final double _screenHeight = MediaQuery.of(context).size.height;
 
     List<Widget> pages = [
-      Container(),
+      BusinessServices(),
       calendarController.view == CalendarView.month
           ? Scrollbar(
               isAlwaysShown: true,
@@ -157,8 +351,11 @@ class _BusinessHomeState extends State<BusinessHome> {
                   )
                 ],
               ))
-          : Container(color: Colors.white, child: _calendar),
-      Container(),
+          : Container(
+              color: Colors.white,
+              child: _calendar,
+            ),
+      BusinessStaff(),
     ];
     return IndexedStack(
       index: _currentIndex,
@@ -225,70 +422,6 @@ class _BusinessHomeState extends State<BusinessHome> {
     );
   }
 
-  /// Creates the required appointment details as a list, and created the data
-  /// source for calendar with required information.
-  List<Appointment> _getAppointmentDetails() {
-    final List<Appointment> appointmentCollection = <Appointment>[];
-    _subjectCollection = <String>[];
-    _subjectCollection.add('General Meeting');
-    _subjectCollection.add('Plan Execution');
-    _subjectCollection.add('Project Plan');
-    _subjectCollection.add('Consulting');
-    _subjectCollection.add('Support');
-    _subjectCollection.add('Development Meeting');
-    _subjectCollection.add('Scrum');
-    _subjectCollection.add('Project Completion');
-    _subjectCollection.add('Release updates');
-    _subjectCollection.add('Performance Check');
-
-    _colorCollection = <Color>[];
-    _colorCollection.add(const Color(0xFF0F8644));
-    _colorCollection.add(const Color(0xFF8B1FA9));
-    _colorCollection.add(const Color(0xFFD20100));
-    _colorCollection.add(const Color(0xFFFC571D));
-    _colorCollection.add(const Color(0xFF85461E));
-    _colorCollection.add(const Color(0xFF36B37B));
-    _colorCollection.add(const Color(0xFF3D4FB5));
-    _colorCollection.add(const Color(0xFFE47C73));
-    _colorCollection.add(const Color(0xFF636363));
-
-    _colorNames = <String>[];
-    _colorNames.add('Green');
-    _colorNames.add('Purple');
-    _colorNames.add('Red');
-    _colorNames.add('Orange');
-    _colorNames.add('Caramel');
-    _colorNames.add('Light Green');
-    _colorNames.add('Blue');
-    _colorNames.add('Peach');
-    _colorNames.add('Gray');
-
-    final DateTime today = DateTime.now();
-    final Random random = Random();
-    for (int month = -1; month < 2; month++) {
-      for (int day = -5; day < 5; day++) {
-        for (int hour = 9; hour < 18; hour += 5) {
-          appointmentCollection.add(Appointment(
-            startTime: today
-                .add(Duration(days: (month * 30) + day))
-                .add(Duration(hours: hour)),
-            endTime: today
-                .add(Duration(days: (month * 30) + day))
-                .add(Duration(hours: hour + 2)),
-            color: _colorCollection[random.nextInt(9)],
-            startTimeZone: '',
-            endTimeZone: '',
-            notes: '',
-            isAllDay: false,
-            subject: _subjectCollection[random.nextInt(7)],
-          ));
-        }
-      }
-    }
-
-    return appointmentCollection;
-  }
-
   /// Returns the calendar based on the properties passed.
   SfCalendar _getAppointmentEditorCalendar(
       [CalendarController? _calendarController,
@@ -311,6 +444,10 @@ class _BusinessHomeState extends State<BusinessHome> {
         },
         onDragEnd: (AppointmentDragEndDetails appointmentDragUpdateDetails) {
           print(appointmentDragUpdateDetails.appointment);
+          showAboutDialog(
+            context: context,
+            children: [Text('Drag and drop is allowed in week and day view')],
+          );
         },
         onViewChanged: viewChangedCallback,
         initialDisplayDate: DateTime(DateTime.now().year, DateTime.now().month,

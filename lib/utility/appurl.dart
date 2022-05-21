@@ -1,7 +1,7 @@
 class AppConstant {
-  static const String baseUrl = "http://";
+  static const String BASE_URL = "http://rxfarm91.cse.buffalo.edu:5001/api/";
 
-  static const String BUSINESS_SIGNUP = "business_signup";
+  static const String BUSINESS_SIGNUP = "bussiness-sign-up";
 
   static const String SIGNUP = "business_login";
 
@@ -16,6 +16,7 @@ class AppConstant {
 
   //Business
 
+  static const String GET_BUSINESS_STAFF = "business_login";
   static const String BUSINESS_POST_INFO = "business_login";
 
   static const String BUSINESS_GET_INFO = "business_login";
@@ -40,7 +41,7 @@ class AppConstant {
 
   static const POST_APPOINTMENT = "business_login";
 
-  static const GET_APPOINTMENT = "appointment";
+  static const GET_BUSINESS_APPOINTMENT = "appointment";
 
   static getAppointmentByID(id) => "business_login";
 
