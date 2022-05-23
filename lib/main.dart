@@ -13,9 +13,12 @@ import 'package:openapp/pages/business_register.dart';
 import 'package:openapp/pages/shop_page.dart';
 import 'package:openapp/pages/type_selection.dart';
 import 'package:openapp/pages/widgets/hex_color.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+late SharedPreferences? prefs;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Material(
       child: Container(
@@ -77,7 +80,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: SafeArea(
-        child: TypeSelection(),
+        child: BusinessHome(),
       ),
       routes: {
         '/shop': (context) => const ShopPage(),

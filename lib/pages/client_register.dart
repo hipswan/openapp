@@ -3,12 +3,15 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:http/http.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/widgets/openapp_logo.dart';
-
+import 'package:http/http.dart' as http;
 import '../model/user_controller.dart';
+import '../utility/Network/network_connectivity.dart';
+import '../utility/appurl.dart';
 
 class ClientRegister extends StatelessWidget {
   ClientRegister({Key? key}) : super(key: key);
@@ -82,6 +85,29 @@ class ClientRegister extends StatelessWidget {
     );
   }
 
+  sigupUser() async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        final response =
+            await http.post(Uri.parse('${AppConstant.SIGNUP}'), body: {
+          "emailId": emailId.text,
+          "password": password.text,
+          "firstname": name.text,
+          "lastName": "",
+          "phoneNumber": phone.text
+        });
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception('Failed to create business');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -110,7 +136,32 @@ class ClientRegister extends StatelessWidget {
                     ),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    Loader.show(
+                      context,
+                      isSafeAreaOverlay: false,
+                      isBottomBarOverlay: false,
+                      overlayFromBottom: 80,
+                      overlayColor: Colors.black26,
+                      progressIndicator: CircularProgressIndicator(
+                          backgroundColor: Colors.red),
+                      themeData: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.fromSwatch()
+                            .copyWith(secondary: Colors.green),
+                      ),
+                    );
+
+                    try {
+                      await sigupUser();
+                      Loader.hide();
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/business_home', (route) => false);
+                    } catch (e) {
+                      print(e);
+                    }
+                  }
+                },
                 child: Text(
                   'Sign Up',
                   style: TextStyle(
@@ -140,7 +191,7 @@ class ClientRegister extends StatelessWidget {
                   controller: name,
                   validator: (value) {
                     if (value!.isEmpty) {
-                      return 'Please enter some text';
+                      return 'Please enter your full name';
                     }
                     return null;
                   },
@@ -159,7 +210,7 @@ class ClientRegister extends StatelessWidget {
                   controller: emailId,
                   validator: (value) {
                     if (value!.isEmpty) {
-                      return 'Please enter some text';
+                      return 'Please enter your email';
                     }
                     return null;
                   },
@@ -175,6 +226,14 @@ class ClientRegister extends StatelessWidget {
                   vertical: 10,
                 ),
                 child: TextFormField(
+                  controller: password,
+                  obscureText: true,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    return null;
+                  },
                   decoration: const InputDecoration(
                     labelText: 'Password',
                     border: OutlineInputBorder(),
@@ -188,6 +247,15 @@ class ClientRegister extends StatelessWidget {
                 ),
                 child: TextFormField(
                   controller: phone,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter your phone number';
+                    } else if (value.length != 10) {
+                      return 'Please enter valid phone number';
+                    }
+                    return null;
+                  },
                   decoration: const InputDecoration(
                     labelText: 'Phone Number',
                     border: OutlineInputBorder(),

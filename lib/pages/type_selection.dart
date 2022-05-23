@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/main.dart';
 import 'package:openapp/pages/widgets/hex_color.dart';
 
 class TypeSelection extends StatefulWidget {
@@ -123,9 +124,7 @@ class _TypeSelectionState extends State<TypeSelection> {
                       padding: const EdgeInsets.symmetric(
                         vertical: 20.0,
                       ),
-                      child: Wrap(
-                        spacing: 20.0,
-                        direction: Axis.horizontal,
+                      child: Row(
                         children: [
                           ChoiceChip(
                             labelPadding: EdgeInsets.all(10),
@@ -150,6 +149,7 @@ class _TypeSelectionState extends State<TypeSelection> {
                               });
                             },
                           ),
+                          Spacer(),
                           ChoiceChip(
                             labelPadding: EdgeInsets.all(10),
                             padding: EdgeInsets.all(10),
@@ -189,9 +189,11 @@ class _TypeSelectionState extends State<TypeSelection> {
                           onPressed: () async {
                             // Navigator.of(context).pop();
                             if (_value == 0) {
+                              await prefs?.setInt('userType', _value);
                               Navigator.of(context)
                                   .pushNamed('/business_register');
                             } else if (_value == 1) {
+                              await prefs?.setInt('userType', _value);
                               Navigator.of(context)
                                   .pushNamed('/client_register');
                             }

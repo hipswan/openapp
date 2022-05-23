@@ -2,255 +2,285 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:openapp/utility/Network/network_connectivity.dart';
+import 'package:openapp/utility/Network/network_helper.dart';
 import 'package:openapp/utility/appurl.dart';
 
-class Business extends ChangeNotifier {
-  String? name;
-  String? description;
-  String? address;
-  String? phone;
-  String? email;
-  String? businessCity;
-  String? businessState;
-  String? businessZip;
-  String? businessCategory;
-  var businessServices;
-  var businessAppointments;
-  var businessStaffs;
+// To parse this JSON data, do
+//
+//     final business = businessFromJson(jsonString);
 
-  Business.create();
+import 'dart:convert';
 
+class Business {
   Business({
-    this.name,
+    this.token,
+    this.id,
+    this.emailId,
+    this.firstName,
+    this.lastName,
+    this.bId,
+    this.uId,
+    this.bName,
+    this.bCity,
+    this.bZip,
+    this.bState,
+    this.bType,
     this.description,
-    this.address,
-    this.phone,
-    this.email,
-    this.businessCity,
-    this.businessState,
-    this.businessZip,
-    this.businessCategory,
-    this.businessAppointments,
-    this.businessServices,
-    this.businessStaffs,
+    this.image1,
+    this.image2,
+    this.image3,
+    this.lat,
+    this.long,
+    this.extraData3,
+    this.appointments,
   });
 
-  void copyFrom(Business business) {
-    this.name = business.name;
-    this.description = business.description;
-    this.address = business.address;
-    this.phone = business.phone;
-    this.email = business.email;
-    this.businessCity = business.businessCity;
-    this.businessState = business.businessState;
-    this.businessZip = business.businessZip;
-    this.businessCategory = business.businessCategory;
-    this.businessAppointments = business.businessAppointments;
-    this.businessServices = business.businessServices;
-    this.businessStaffs = business.businessStaffs;
-  }
-
-  Business copyWith({
-    String? name,
-    String? description,
-    String? address,
-    String? phone,
-    String? email,
-    String? businessCity,
-    String? businessState,
-    String? businessZip,
-    String? businessCategory,
-    List? businessAppointments,
-    List? businessServices,
-    List? businessStaffs,
-  }) {
-    return Business(
-      name: name ?? this.name,
-      description: description ?? this.description,
-      address: address ?? this.address,
-      phone: phone ?? this.phone,
-      email: email ?? this.email,
-      businessCity: businessCity ?? this.businessCity,
-      businessState: businessState ?? this.businessState,
-      businessZip: businessZip ?? this.businessZip,
-      businessCategory: businessCategory ?? this.businessCategory,
-      businessAppointments: businessAppointments ?? this.businessAppointments,
-      businessServices: businessServices ?? this.businessServices,
-      businessStaffs: businessStaffs ?? this.businessStaffs,
-    );
-  }
-
+  String? token;
+  int? id;
+  String? emailId;
+  String? firstName;
+  String? lastName;
+  int? bId;
+  int? uId;
+  String? bName;
+  String? bCity;
+  String? bZip;
+  String? bState;
+  String? bType;
+  String? description;
+  String? image1;
+  String? image2;
+  String? image3;
+  String? lat;
+  String? long;
+  String? extraData3;
+  List<BusinessAppointment>? appointments;
   StreamController<Business> _streamController = StreamController.broadcast();
   Stream<Business> get businessStream => _streamController.stream;
   get businessStreamController => _streamController;
 
-  Future<Business> getBusinessDetails() async {
-    // return await Future.delayed(Duration(seconds: 2), () {
+  Business copyWith({
+    String? token,
+    int? id,
+    String? emailId,
+    String? firstName,
+    String? lastName,
+    int? bId,
+    int? uId,
+    String? bName,
+    String? bCity,
+    String? bZip,
+    String? bState,
+    String? bType,
+    String? description,
+    String? image1,
+    String? image2,
+    String? image3,
+    String? lat,
+    String? long,
+    String? extraData3,
+  }) =>
+      Business(
+        token: token ?? this.token,
+        id: id ?? this.id,
+        emailId: emailId ?? this.emailId,
+        firstName: firstName ?? this.firstName,
+        lastName: lastName ?? this.lastName,
+        bId: bId ?? this.bId,
+        uId: uId ?? this.uId,
+        bName: bName ?? this.bName,
+        bCity: bCity ?? this.bCity,
+        bZip: bZip ?? this.bZip,
+        bState: bState ?? this.bState,
+        bType: bType ?? this.bType,
+        description: description ?? this.description,
+        image1: image1 ?? this.image1,
+        image2: image2 ?? this.image2,
+        image3: image3 ?? this.image3,
+        lat: lat ?? this.lat,
+        long: long ?? this.long,
+        extraData3: extraData3 ?? this.extraData3,
+      );
 
-//      businessSignI = {
-//     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbElkIjoiYXR1bHNpbmdoMTU4QGdtYWlsLmNvbSIsImlkIjo1LCJpYXQiOjE2NTMyODcwNDQsImV4cCI6MTY1MzY0NzA0NH0.rt6B6MR63sqfQj8OBkrRW97gNlC6WQDjcL7vW6D0OXI",
-//     "id": 5,
-//     "emailId": "atulsingh158@gmail.com",
-//     "firstName": "Atul Singh",
-//     "lastName": ""
-// }
-    return this.copyWith(
-      name: 'Business Name',
-      description: 'Business Description',
-      address: 'Business Address',
-      phone: 'Business Phone',
-      email: 'Business Email',
-      businessCity: 'Business City',
-      businessState: 'Business State',
-      businessZip: 'Business Zip',
-      businessCategory: 'Business Category',
-      businessServices: [],
-      businessAppointments: [],
-      businessStaffs: [],
-    );
-    // });
+  factory Business.fromRawJson(String str) =>
+      Business.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  fromSignIn(Map<String, dynamic> json) {
+    this.token = json["token"];
+    this.id = json["id"];
+    this.emailId = json["emailId"];
+    this.firstName = json["firstName"];
+    this.lastName = json["lastName"];
+    this.bId = json["bId"];
+    this.uId = json["uId"];
+    this.bName = json["bName"];
+    this.bCity = json["bCity"];
+    this.bZip = json["bZip"];
+    this.bState = json["bState"];
+    this.bType = json["bType"];
+    this.description = json["description"];
+    this.image1 = json["image1"];
+    this.image2 = json["image2"];
+    this.image3 = json["image3"];
+    this.lat = json["lat"];
+    this.long = json["long"];
+    this.extraData3 = json["extraData3"];
   }
 
-  Future<Business> getBusinessServices() async {
-    // return await Future.delayed(
-    //   Duration(seconds: 2),
-    //   () async {
-    return this.copyWith(
-      businessServices: [
-        {
-          'serviceName': 'Service Name',
-          'serviceDescription': 'Service Description',
-          'servicePrice': 'Service Price',
-          'serviceDuration': 'Service Duration',
-          'serviceImage': 'Service Image',
-        },
-      ],
-    );
-    //   },
-    // );
-    // try {
-    //   final response = await http.get(
-    //     Uri.parse(
-    //       '${AppConstant.BASE_URL}${AppConstant.GET_BUSINESS_SERVICES}',
-    //     ),
-    //   );
-    //   if (response.statusCode == 200) {
-    //     final jsonResponse = json.decode(response.body);
-    //     return Business.fromJson(jsonResponse);
-    //   } else {
-    //     throw Exception('Failed to load business details');
-    //   }
-    // } catch (e) {
-    //   throw Exception('Failed to load business details');
-    // }
-  }
-
-  Future<Business> getBusinessAppointments() async {
-    // return await Future.delayed(Duration(seconds: 2), () {
-    return this.copyWith(
-      businessAppointments: [
-        {
-          'id': '1',
-          'title': 'Appointment 1',
-          'start': '2020-01-01',
-          'end': '2020-01-01',
-          'color': '#00bcd4',
-        }
-      ],
-    );
-    // });
-
-    // try {
-    //   final response = await http.get(
-    //     Uri.parse(
-    //         '${AppConstant.BASE_URL}${AppConstant.GET_BUSINESS_APPOINTMENT}'),
-    //   );
-    //   if (response.statusCode == 200) {
-    //     final jsonResponse = json.decode(response.body);
-    //     return Business.fromJson(jsonResponse);
-    //   } else {
-    //     throw Exception('Failed to load business details');
-    //   }
-    // } catch (e) {
-    //   throw Exception('Failed to load business details');
-    // }
-  }
-
-  Future<Business> getBusinessStaffs() async {
-    // return await Future.delayed(Duration(seconds: 2), () {
-    return this.copyWith(
-      businessStaffs: [
-        {
-          'id': '1',
-          'name': 'Staff Name',
-          'email': 'Staff Email',
-          'phone': 'Staff Phone',
-          'image': 'Staff Image',
-        }
-      ],
-    );
-    // });
-
-    // try {
-    //   final response = await http.get(
-    //     Uri.parse('${AppConstant.BASE_URL}${AppConstant.GET_BUSINESS_STAFF}'),
-    //   );
-    //   if (response.statusCode == 200) {
-    //     final jsonResponse = json.decode(response.body);
-    //     return Business.fromJson(jsonResponse);
-    //   } else {
-    //     throw Exception('Failed to load business details');
-    //   }
-    // } catch (e) {
-    //   throw Exception('Failed to load business details');
-    // }
-  }
-
-  Future<void> createBusiness() async {
-    // var response = await http
-    //     .post(
-    //   Uri.parse('${AppConstant.BASE_URL}${AppConstant.BUSINESS_SIGNUP}'),
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: json.encode({
-    //     'name': this.name,
-    //     'description': this.description,
-    //     'address': this.address,
-    //     'phone': this.phone,
-    //     'email': this.email,
-    //     'businessCity': this.businessCity,
-    //     'businessState': this.businessState,
-    //     'businessZip': this.businessZip,
-    //     'businessCategory': this.businessCategory,
-    //   }),
-    // )
-    //     .timeout(
-    //         Duration(
-    //           seconds: 10,
-    //         ), onTimeout: () {
-    //   throw Exception('Timeout');
-    // });
-
-    // if (response.statusCode == 200) {
-    //   print(response.body);
-    // } else {
-    //   print(response.reasonPhrase);
-    // }
+  saveAppointments(appointments) {
+    this.appointments = appointments
+        .map<BusinessAppointment>((e) => BusinessAppointment.fromJson(e))
+        .toList();
   }
 
   factory Business.fromJson(Map<String, dynamic> json) {
     return Business(
-      name: json['name'],
-      description: json['description'],
-      address: json['address'],
-      phone: json['phone'],
-      email: json['email'],
-      businessCity: json['businessCity'],
-      businessState: json['businessState'],
-      businessZip: json['businessZip'],
-      businessCategory: json['businessCategory'],
+      token: json["token"],
+      id: json["id"],
+      emailId: json["emailId"],
+      firstName: json["firstName"],
+      lastName: json["lastName"],
+      bId: json["bId"],
+      uId: json["uId"],
+      bName: json["bName"],
+      bCity: json["bCity"],
+      bZip: json["bZip"],
+      bState: json["bState"],
+      bType: json["bType"],
+      description: json["description"],
+      image1: json["image1"],
+      image2: json["image2"],
+      image3: json["image3"],
+      lat: json["lat"],
+      long: json["long"],
+      extraData3: json["extraData3"],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        "token": token,
+        "id": id,
+        "emailId": emailId,
+        "firstName": firstName,
+        "lastName": lastName,
+        "bId": bId,
+        "uId": uId,
+        "bName": bName,
+        "bCity": bCity,
+        "bZip": bZip,
+        "bState": bState,
+        "bType": bType,
+        "description": description,
+        "image1": image1,
+        "image2": image2,
+        "image3": image3,
+        "lat": lat,
+        "long": long,
+        "extraData3": extraData3,
+      };
+}
+
+// To parse this JSON data, do
+//
+//     final appointment = appointmentFromJson(jsonString);
+
+class BusinessAppointment {
+  BusinessAppointment({
+    this.appId,
+    this.bId,
+    this.uId,
+    this.staffId,
+    this.serviceId,
+    this.startDateTime,
+    this.slotId,
+    this.id,
+    this.emailId,
+    this.firstName,
+    this.lastName,
+    this.notes,
+  });
+
+  int? appId;
+  int? bId;
+  int? uId;
+  int? staffId;
+  int? serviceId;
+  DateTime? startDateTime;
+  int? slotId;
+  int? id;
+  String? emailId;
+  String? firstName;
+  String? lastName;
+  String? notes;
+
+  BusinessAppointment copyWith({
+    int? appId,
+    int? bId,
+    int? uId,
+    int? staffId,
+    int? serviceId,
+    DateTime? startDateTime,
+    int? slotId,
+    int? id,
+    String? emailId,
+    String? firstName,
+    String? lastName,
+    String? notes,
+  }) =>
+      BusinessAppointment(
+        appId: appId ?? this.appId,
+        bId: bId ?? this.bId,
+        uId: uId ?? this.uId,
+        staffId: staffId ?? this.staffId,
+        serviceId: serviceId ?? this.serviceId,
+        startDateTime: startDateTime ?? this.startDateTime,
+        slotId: slotId ?? this.slotId,
+        id: id ?? this.id,
+        emailId: emailId ?? this.emailId,
+        firstName: firstName ?? this.firstName,
+        lastName: lastName ?? this.lastName,
+        notes: notes ?? this.notes,
+      );
+
+  factory BusinessAppointment.fromRawJson(String str) =>
+      BusinessAppointment.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory BusinessAppointment.fromJson(Map<String, dynamic> json) =>
+      BusinessAppointment(
+        appId: json["appId"],
+        bId: json["bId"],
+        uId: json["uId"],
+        staffId: json["staffId"],
+        serviceId: json["serviceId"],
+        startDateTime: DateTime.parse(json["startDateTime"]),
+        slotId: json["slotId"],
+        id: json["id"],
+        emailId: json["emailId"],
+        firstName: json["firstName"],
+        lastName: json["lastName"],
+        notes: json["notes"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "appId": appId,
+        "bId": bId,
+        "uId": uId,
+        "staffId": staffId,
+        "serviceId": serviceId,
+        "startDateTime": startDateTime!.toIso8601String(),
+        "slotId": slotId,
+        "id": id,
+        "emailId": emailId,
+        "firstName": firstName,
+        "lastName": lastName,
+        "notes": notes,
+      };
 }

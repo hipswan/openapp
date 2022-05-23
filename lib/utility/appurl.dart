@@ -1,11 +1,11 @@
 class AppConstant {
   static const String BASE_URL = "http://rxfarm91.cse.buffalo.edu:5001/api/";
 
-  static const String BUSINESS_SIGNUP = "bussiness-sign-up";
+  static const String BUSINESS_SIGNUP = BASE_URL + "bussiness-sign-up";
 
-  static const String SIGNUP = "business_login";
+  static const String SIGNUP = BASE_URL + "sign-up";
 
-  static const String SIGNIN = "business_login";
+  static const String SIGNIN = BASE_URL + "sign-in";
 
   static const String REQ_TEMP_PASS = "business_login";
 
@@ -23,6 +23,24 @@ class AppConstant {
 
   static const String BUSINESS_GET_OWNED_BUSINESS = "business_login";
 
+  static String GET_ALL_BUSINESS(date) => "business?startDate=$date";
+
+  static String getBusinessAvailabilityByDate(id, date) =>
+      BASE_URL + "business/bId=$id&startDate=$date";
+
+  static String updateBusinessAvailabilityByDate(id, date) =>
+      BASE_URL + "business/bId=$id";
+
+  static const pictureUpload = BASE_URL + "file";
+
+  static const ADD_SERVICE = BASE_URL + "business-services";
+
+  static GET_SERVICE_BY_BID(id) => BASE_URL + "business-services?bId=$id";
+
+  static GET_SERVICE_BY_ID(id) => BASE_URL + "business-services?bId=$id";
+
+  static String getBusinessById(id) => BASE_URL + "business/$id";
+  //staff
   static const String GET_STAFF_BY_BUSINESS_ID = "business_login";
 
   static const String POST_STAFF_BY_BUSINESS_ID = "business_login";
@@ -39,25 +57,24 @@ class AppConstant {
 
   static deleteStaffByID(staffID) => "business_login";
 
+  //Appointment
   static const POST_APPOINTMENT = "business_login";
 
-  static const GET_BUSINESS_APPOINTMENT = "appointment";
+  static const BOOK_APPOINTMENT = BASE_URL + "appointments/book";
 
-  static getAppointmentByID(id) => "business_login";
+  static getUserAppointmentByID(id) => BASE_URL + "appointments?uId=$id";
+  static getBusinessAppointmentByID(id) => BASE_URL + "appointments?bId=$id";
 
-  static updateAppointmentByID(id) => "business_login";
+  static updateAppointmentByID(id) => BASE_URL + "appointments/$id";
 
-  static deleteAppointmentByID(id) => "business_login";
-
-  static const POST_APPOINTMENT_BOOK = "business_login";
+  static deleteAppointmentByID(id) => BASE_URL + "appointments/$id";
 
   //Business Hours
 
   static const POST_BUSINESS_HOURS = "business_login";
 
   static const GET_BUSINESS_HOURS = "business_login";
-
-  static getBusinessHoursByID(id) => "business_login";
+  static getBusinessHoursByID(id) => BASE_URL + "business_hours?bId=$id";
 
   static updateBusinessHoursByID(id) => "business_login";
 

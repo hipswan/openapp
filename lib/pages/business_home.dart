@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:openapp/model/business.dart';
 import 'package:openapp/pages/widgets/appointment_editor.dart';
 import 'package:openapp/pages/widgets/custom_animated_navigation_bar.dart';
@@ -10,9 +13,14 @@ import 'package:openapp/pages/widgets/user_drawer.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 import 'package:intl/intl.dart' show DateFormat;
-
+import 'dart:developer' as dev;
+import '../utility/Network/network_connectivity.dart';
+import '../utility/appurl.dart';
 import 'business_services.dart';
 import 'business_staff.dart';
+import 'package:http/http.dart' as http;
+
+Business? currentBusiness;
 
 class BusinessHome extends StatefulWidget {
   const BusinessHome({Key? key}) : super(key: key);
@@ -25,7 +33,7 @@ class _BusinessHomeState extends State<BusinessHome> {
   late List<String> _subjectCollection;
   late List<Appointment> _appointments;
   late List<Appointment> _appointments2;
-
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late List<Color> _colorCollection;
   late List<String> _colorNames;
   Color _inactiveColor = Colors.white;
@@ -38,8 +46,13 @@ class _BusinessHomeState extends State<BusinessHome> {
   String _subject = '';
   final ScrollController controller = ScrollController();
   final CalendarController calendarController = CalendarController();
+  bool hideEmptyScheduleWeek = false;
+
   bool allowDragAndDrop = false;
-  Business _business = Business.create();
+
+  String _loadingStatus = 'Loading...';
+
+  Business _business = Business();
 
   /// Global key used to maintain the state,
   /// when we change the parent of the widget
@@ -65,21 +78,117 @@ class _BusinessHomeState extends State<BusinessHome> {
     super.initState();
   }
 
+  signInBusiness() async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        final response = await http.post(
+          Uri.parse('${AppConstant.SIGNIN}'),
+          body: {"emailId": "asmtsingh4@gmail.com", "password": "x6kgobej"},
+        );
+        if (response.statusCode == 201) {
+          return json.decode(response.body);
+        } else {
+          throw Exception('Failed to logging in business');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
+    }
+  }
+
+  fetchBusinessAppointments(id) async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        final response = await http
+            .get(Uri.parse('${AppConstant.getBusinessAppointmentByID('4')}'));
+        if (response.statusCode == 200) {
+          return json.decode(response.body);
+        } else {
+          throw Exception('Failed to logging in business');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
+    }
+  }
+
   //TODO: get business details
   getBusinessDetails() async {
     // await _business.createBusiness();
 
-    Business business = await _business.getBusinessDetails();
-    _business.businessStreamController.sink.add(business);
+    signInBusiness().then((response) async {
+      dev.log(response.toString());
+      //TODO: save business details
 
-    Business appointments = await _business.getBusinessAppointments();
-    _business.businessStreamController.sink.add(appointments);
+      _business.fromSignIn(response);
 
-    Business services = await _business.getBusinessServices();
-    _business.businessStreamController.sink.add(services);
+      _loadingStatus = 'Loading business appointments...';
+      Loader.show(
+        context,
+        isSafeAreaOverlay: false,
+        isBottomBarOverlay: false,
+        overlayFromBottom: 80,
+        overlayColor: Colors.black26,
+        progressIndicator: Material(
+          child: CircularProgressIndicator(backgroundColor: Colors.red),
+        ),
+        themeData: Theme.of(context).copyWith(
+          colorScheme:
+              ColorScheme.fromSwatch().copyWith(secondary: Colors.green),
+        ),
+      );
 
-    Business staff = await _business.getBusinessStaffs();
-    _business.businessStreamController.sink.add(staff);
+      try {
+        final res = await fetchBusinessAppointments(_business.bId);
+        //TODO: save appointments details
+        _business.saveAppointments(res);
+        Loader.hide();
+      } catch (e) {
+        throw e;
+      }
+
+      //  _loadingStatus = 'Loading business services...';
+
+      // AwesomeDialog(
+      //   context: context,
+      //   dialogType: DialogType.INFO,
+      //   animType: AnimType.BOTTOMSLIDE,
+      //   title: 'Fetching Business Details',
+      //   desc: _loadingStatus,
+      //   btnCancelOnPress: () {},
+      //   btnOkOnPress: () {},
+      // )..show();
+      // try {
+      //   await fetchBusinessAppointments();
+      //   //TODO: save appointments details
+      //   AwesomeDialog(
+      //     context: context,
+      //     dialogType: DialogType.SUCCES,
+      //     animType: AnimType.BOTTOMSLIDE,
+      //     title: 'Fetched Business Details',
+      //     desc: _loadingStatus,
+      //     btnCancelOnPress: () {},
+      //     btnOkOnPress: () {},
+      //   )..show();
+      // } catch (e) {
+      //   throw e;
+      // }
+
+      // await _business.getBusinessServices();
+      // _loadingStatus = 'Getting business services...';
+
+      // _business.businessStreamController.sink.add(null);
+
+      // Business staff = await _business.getBusinessStaffs();
+      _business.businessStreamController.sink.add(_business);
+    }).catchError((e) {
+      _loadingStatus = 'Failed to get business details reason: $e';
+      _business.businessStreamController.addError(e);
+    });
   }
 
   /// Returns the month name based on the month value passed from date.
@@ -140,7 +249,7 @@ class _BusinessHomeState extends State<BusinessHome> {
   @override
   Widget build(BuildContext context) {
     Widget _calendar({_DataSource? events}) {
-      _events = _DataSource(_appointments2);
+      // _events = _DataSource(_appointments2);
       return Theme(
         /// The key set here to maintain the state,
         ///  when we change the parent of the widget
@@ -170,21 +279,18 @@ class _BusinessHomeState extends State<BusinessHome> {
             ),
           ),
         ),
-        body: StreamBuilder<Object>(
+        body: StreamBuilder<Business>(
             stream: _business.businessStream,
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                Business business = snapshot.data as Business;
-                _business.copyFrom(business);
-
-                _appointments =
-                    getBusinessAppointments(_business.businessAppointments);
-
-                _events = _DataSource(_appointments);
+                Business business = snapshot.data!;
+                currentBusiness = business;
+                _events =
+                    _DataSource(getBusinessAppointments(business.appointments));
 
                 return calendarController.view == CalendarView.month
                     ? Scrollbar(
-                        isAlwaysShown: true,
+                        thumbVisibility: true,
                         controller: controller,
                         child: ListView(
                           controller: controller,
@@ -212,15 +318,31 @@ class _BusinessHomeState extends State<BusinessHome> {
         floatingActionButton: FloatingActionButton(
           backgroundColor: HexColor('#143F6B'),
           onPressed: () => {
-            setState(
-              () {
-                _view = CalendarView.week;
-                allowDragAndDrop = !allowDragAndDrop;
-              },
-            )
+            if (_view == CalendarView.schedule)
+              {
+                setState(() {
+                  hideEmptyScheduleWeek = !hideEmptyScheduleWeek;
+                })
+              }
+            else
+              {
+                setState(
+                  () {
+                    calendarController.view = CalendarView.week;
+
+                    allowDragAndDrop = !allowDragAndDrop;
+                  },
+                )
+              }
           },
           child: Icon(
-            Icons.edit,
+            _view == CalendarView.schedule
+                ? !hideEmptyScheduleWeek
+                    ? Icons.calendar_view_day_rounded
+                    : Icons.calendar_view_day_outlined
+                : allowDragAndDrop
+                    ? Icons.save_as_rounded
+                    : Icons.edit_calendar_outlined,
             color: Colors.white,
           ),
         ),
@@ -229,24 +351,39 @@ class _BusinessHomeState extends State<BusinessHome> {
     );
   }
 
-  List<Appointment> getBusinessAppointments(businessAppointment) {
-    if (businessAppointment == null) {
-      return [];
-    }
+  List<Appointment> getBusinessAppointments(
+      List<BusinessAppointment>? businessAppointments) {
     final List<Appointment> _appointments = <Appointment>[];
+    if (businessAppointments != null && businessAppointments.isEmpty) {
+      return _appointments;
+    }
     _colorCollection = <Color>[];
+    _colorCollection.add(const Color(0xFF0F8644));
+    _colorCollection.add(const Color(0xFF8B1FA9));
+    _colorCollection.add(const Color(0xFFD20100));
+    _colorCollection.add(const Color(0xFFFC571D));
+    _colorCollection.add(const Color(0xFF85461E));
+    _colorCollection.add(const Color(0xFF36B37B));
     _colorCollection.add(const Color(0xFF3D4FB5));
+    _colorCollection.add(const Color(0xFFE47C73));
+    _colorCollection.add(const Color(0xFF636363));
+    final Random random = Random();
 
-    for (int i = 0; i < businessAppointment.length; i++) {
+    for (BusinessAppointment appointment in businessAppointments!) {
       _appointments.add(Appointment(
-        startTime: DateTime.now(),
-        endTime: DateTime.now(),
-        color: _colorCollection[i],
+        startTime: appointment.startDateTime ?? DateTime.now(),
+        endTime: appointment.startDateTime!.add(
+          Duration(
+            minutes: 30,
+          ),
+        ),
+        color: _colorCollection[random.nextInt(9)],
         startTimeZone: '',
         endTimeZone: '',
-        notes: '',
+        notes: ' ${appointment.notes} ${appointment.emailId}',
         isAllDay: false,
-        subject: 'Subject $i',
+        subject:
+            '${appointment.firstName} ${appointment.lastName}_${appointment.staffId}',
       ));
     }
 
@@ -344,7 +481,7 @@ class _BusinessHomeState extends State<BusinessHome> {
       BusinessServices(),
       calendarController.view == CalendarView.month
           ? Scrollbar(
-              isAlwaysShown: true,
+              thumbVisibility: true,
               controller: controller,
               child: ListView(
                 controller: controller,
@@ -440,19 +577,22 @@ class _BusinessHomeState extends State<BusinessHome> {
         showNavigationArrow: false,
         allowedViews: _allowedViews,
         showDatePickerButton: true,
+        scheduleViewSettings: ScheduleViewSettings(
+          hideEmptyScheduleWeek: hideEmptyScheduleWeek,
+        ),
         scheduleViewMonthHeaderBuilder: scheduleViewBuilder,
         dataSource: _calendarDataSource,
         onTap: calendarTapCallback,
         allowDragAndDrop: true,
         onLongPress: (CalendarLongPressDetails details) {
-          print('Drag and drop is allowed in week and day view');
+          dev.log('Drag and drop is allowed in week and day view');
         },
         onDragEnd: (AppointmentDragEndDetails appointmentDragUpdateDetails) {
-          print(appointmentDragUpdateDetails.appointment);
-          showAboutDialog(
-            context: context,
-            children: [Text('Drag and drop is allowed in week and day view')],
-          );
+          dev.log(appointmentDragUpdateDetails.appointment.toString());
+          // showAboutDialog(
+          //   context: context,
+          //   children: [Text('Drag and drop is allowed in week and day view')],
+          // );
         },
         onViewChanged: viewChangedCallback,
         initialDisplayDate: DateTime(DateTime.now().year, DateTime.now().month,
@@ -466,7 +606,7 @@ class _BusinessHomeState extends State<BusinessHome> {
 
   void _onViewChanged(ViewChangedDetails visibleDatesChangedDetails) {
     _visibleDates = visibleDatesChangedDetails.visibleDates;
-    if (_view == calendarController.view ||
+    if (_view == calendarController.view! ||
         (_view != CalendarView.month &&
             calendarController.view != CalendarView.month)) {
       return;

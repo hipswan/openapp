@@ -3,11 +3,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cupertino_stepper/cupertino_stepper.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:http/http.dart';
 import 'package:openapp/pages/widgets/form_page.dart';
 import 'package:openapp/pages/widgets/openapp_logo.dart';
 import 'package:openapp/pages/widgets/section.dart';
-
+import 'package:openapp/utility/Network/network_connectivity.dart';
+import 'package:http/http.dart' as http;
+import 'package:openapp/utility/appurl.dart';
 import '../constant.dart';
 
 class BusinessRegister extends StatefulWidget {
@@ -24,8 +27,12 @@ class _BusinessRegisterState extends State<BusinessRegister> {
   final email = TextEditingController();
   final phoneNumber = TextEditingController();
   final businessName = TextEditingController();
-  final businessLocation = TextEditingController();
-
+  final businessCity = TextEditingController();
+  final businessState = TextEditingController();
+  final businessZip = TextEditingController();
+  var businessCategory = null;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _formKey = GlobalKey<FormState>();
   var daysOperating = {
     'Mon': {'active': false, 'from': '00:00', 'to': '00:00'},
     'Tue': {'active': false, 'from': '00:00', 'to': '00:00'},
@@ -66,187 +73,267 @@ class _BusinessRegisterState extends State<BusinessRegister> {
     );
   }
 
+  sigupUser() async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        final response =
+            await http.post(Uri.parse('${AppConstant.BUSINESS_SIGNUP}'), body: {
+          "user": {
+            "firstName": firstName.text,
+            "lastName": lastName.text,
+            "phoneNumber": phoneNumber.text,
+            "emailId": email.text,
+          },
+          "business": {
+            "bName": businessName.text,
+            "bCity": businessCity.text,
+            "bState": businessState.text,
+            "bType": businessCategory,
+            "bZip": businessZip.text,
+          },
+        });
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception('Failed to create business');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final canCancel = currentStep > 0;
     final canContinue = currentStep < 2;
     return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.redAccent,
-          title: Text(
-            'Business',
-          ),
-          centerTitle: true,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(10),
+      child: WillPopScope(
+        onWillPop: () async => !Loader.isShown,
+        child: Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
+            backgroundColor: Colors.redAccent,
+            title: Text(
+              'Business',
+            ),
+            centerTitle: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(10),
+              ),
             ),
           ),
-        ),
-        body: ListView(
-          children: [
-            OpenappLogo(),
-            CupertinoStepper(
-              type: StepperType.vertical,
-              currentStep: currentStep,
-              onStepTapped: (step) => setState(() => currentStep = step),
-              onStepCancel:
-                  canCancel ? () => setState(() => --currentStep) : null,
-              onStepContinue: canContinue
-                  ? () async {
-                      if (currentStep == 1) {
-                        Navigator.pushNamed(context, '/business_home');
-                      } else
-                        setState(() => ++currentStep);
-                    }
-                  : null,
-              steps: [
-                _buildStep(
-                  title: Text(
-                    'Personal Details',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.redAccent,
+          body: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                OpenappLogo(),
+                CupertinoStepper(
+                  type: StepperType.vertical,
+                  currentStep: currentStep,
+                  onStepTapped: (step) => setState(() => currentStep = step),
+                  onStepCancel:
+                      canCancel ? () => setState(() => --currentStep) : null,
+                  onStepContinue: canContinue
+                      ? () async {
+                          if (currentStep == 1) {
+                            if (_formKey.currentState!.validate()) {
+                              Loader.show(
+                                context,
+                                isSafeAreaOverlay: false,
+                                isBottomBarOverlay: false,
+                                overlayFromBottom: 80,
+                                overlayColor: Colors.black26,
+                                progressIndicator: CircularProgressIndicator(
+                                    backgroundColor: Colors.red),
+                                themeData: Theme.of(context).copyWith(
+                                  colorScheme: ColorScheme.fromSwatch()
+                                      .copyWith(secondary: Colors.green),
+                                ),
+                              );
+
+                              try {
+                                await sigupUser();
+                                Loader.hide();
+                                Navigator.pushNamedAndRemoveUntil(context,
+                                    '/business_home', (route) => false);
+                              } catch (e) {
+                                print(e);
+                              }
+                            }
+                          } else
+                            setState(() => ++currentStep);
+                        }
+                      : null,
+                  steps: [
+                    _buildStep(
+                      title: Text(
+                        'Personal Details',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                      isActive: 0 == currentStep,
+                      state: 0 == currentStep
+                          ? StepState.editing
+                          : 0 < currentStep
+                              ? StepState.complete
+                              : StepState.indexed,
+                      subtitle: 'Enter your personal details',
+                      content: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              controller: firstName,
+                              decoration: InputDecoration(
+                                labelText: 'First Name',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              controller: lastName,
+                              decoration: InputDecoration(
+                                labelText: 'Last Name',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              controller: email,
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              keyboardType: TextInputType.number,
+                              controller: phoneNumber,
+                              decoration: InputDecoration(
+                                labelText: 'Phone Number',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  isActive: 0 == currentStep,
-                  state: 0 == currentStep
-                      ? StepState.editing
-                      : 0 < currentStep
-                          ? StepState.complete
-                          : StepState.indexed,
-                  subtitle: 'Enter your personal details',
-                  content: Form(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            controller: firstName,
-                            decoration: InputDecoration(
-                              labelText: 'First Name',
-                              border: OutlineInputBorder(),
+                    _buildStep(
+                      title: Text(
+                        'Business Details',
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                      isActive: 1 == currentStep,
+                      state: 1 == currentStep
+                          ? StepState.editing
+                          : 1 < currentStep
+                              ? StepState.complete
+                              : StepState.indexed,
+                      subtitle: 'Enter your business details',
+                      content: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              controller: businessName,
+                              decoration: InputDecoration(
+                                labelText: 'Business Name',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            controller: lastName,
-                            decoration: InputDecoration(
-                              labelText: 'Last Name',
-                              border: OutlineInputBorder(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: DropdownButtonFormField<String>(
+                              value: businessCategory,
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'Please enter business type';
+                                }
+                                return null;
+                              },
+                              items: [
+                                DropdownMenuItem(
+                                    child: Text('Restaurant'),
+                                    value: 'Restaurant'),
+                                DropdownMenuItem(
+                                    child: Text('Salon'), value: 'Salon'),
+                                DropdownMenuItem(
+                                    child: Text('Clinic'), value: 'Clinic'),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  businessCategory = value;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Select Category',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            controller: email,
-                            decoration: InputDecoration(
-                              labelText: 'Email',
-                              border: OutlineInputBorder(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              controller: businessState,
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'Please enter zip code';
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'State, City',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            keyboardType: TextInputType.number,
-                            controller: phoneNumber,
-                            decoration: InputDecoration(
-                              labelText: 'Phone Number',
-                              border: OutlineInputBorder(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextFormField(
+                              controller: businessZip,
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'Please enter zip code';
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Zip/Postal Code',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                _buildStep(
-                  title: Text(
-                    'Business Details',
-                    style: TextStyle(
-                      fontSize: 20,
-                    ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
                   ),
-                  isActive: 1 == currentStep,
-                  state: 1 == currentStep
-                      ? StepState.editing
-                      : 1 < currentStep
-                          ? StepState.complete
-                          : StepState.indexed,
-                  subtitle: 'Enter your business details',
-                  content: Form(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            controller: firstName,
-                            decoration: InputDecoration(
-                              labelText: 'Business Name',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: DropdownButtonFormField(
-                            items: [
-                              DropdownMenuItem(
-                                  child: Text('Restaurant'),
-                                  value: 'Restaurant'),
-                              DropdownMenuItem(
-                                  child: Text('Salon'), value: 'Salon'),
-                              DropdownMenuItem(
-                                  child: Text('Clinic'), value: 'Clinic'),
-                            ],
-                            onChanged: (value) {},
-                            decoration: InputDecoration(
-                              labelText: 'Select Category',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            controller: businessLocation,
-                            decoration: InputDecoration(
-                              labelText: 'State, City',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            controller: phoneNumber,
-                            decoration: InputDecoration(
-                              labelText: 'Zip/Postal Code',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: alreadyHaveAnAccount(context),
+                ),
+                SizedBox(
+                  height: 30,
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-              ),
-              child: alreadyHaveAnAccount(context),
-            ),
-            SizedBox(
-              height: 30,
-            ),
-          ],
+          ),
         ),
       ),
     );

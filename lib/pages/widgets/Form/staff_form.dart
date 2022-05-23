@@ -1,8 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
 
-class StaffForm extends StatelessWidget {
+class StaffForm extends StatefulWidget {
   const StaffForm({Key? key}) : super(key: key);
+
+  @override
+  State<StaffForm> createState() => _StaffFormState();
+}
+
+class _StaffFormState extends State<StaffForm> {
+  File? imagePath;
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
+import 'package:openapp/constant.dart';
+import 'package:openapp/pages/widgets/staff_card.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
@@ -13,6 +16,7 @@ List<String> _weekDay = <String>[
   'Saturday',
   'Sunday'
 ];
+
 enum _SelectRule {
   doesNotRepeat,
   everyDay,
@@ -21,7 +25,9 @@ enum _SelectRule {
   everyYear,
   custom
 }
+
 enum _Edit { event, series }
+
 enum _Delete { event, series }
 
 /// Builds the appointment editor with all the required elements based on the
@@ -65,13 +71,17 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
   late DateTime _endDate;
   late TimeOfDay _endTime;
   bool _isAllDay = false;
-  String _subject = '';
-  String? _notes;
   String? _location;
   List<Object>? _resourceIds;
   List<CalendarResource> _selectedResources = <CalendarResource>[];
   List<CalendarResource> _unSelectedResources = <CalendarResource>[];
+  TextEditingController _staffController = TextEditingController();
+  TextEditingController _serviceController = TextEditingController();
+  TextEditingController _notesController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
+  //TODO: recurrence in pending
   RecurrenceProperties? _recurrenceProperties;
   late RecurrenceType _recurrenceType;
   RecurrenceRange? _recurrenceRange;
@@ -106,10 +116,11 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
       //         ? 0
       //         : widget.timeZoneCollection
       //             .indexOf(widget.selectedAppointment!.startTimeZone!);
-      _subject = widget.selectedAppointment!.subject == '(No title)'
-          ? ''
-          : widget.selectedAppointment!.subject;
-      _notes = widget.selectedAppointment!.notes;
+      _serviceController.text =
+          widget.selectedAppointment!.subject == '(No title)'
+              ? ''
+              : widget.selectedAppointment!.subject;
+      _notesController.text = widget.selectedAppointment!.notes!;
       _location = widget.selectedAppointment!.location;
       _resourceIds = widget.selectedAppointment!.resourceIds?.sublist(0);
       _recurrenceProperties =
@@ -127,8 +138,9 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
       _isAllDay = widget.targetElement == CalendarElement.allDayPanel;
       _selectedColorIndex = 0;
       _selectedTimeZoneIndex = 0;
-      _subject = '';
-      _notes = '';
+      _serviceController.text = '';
+      _staffController.text = '';
+      _notesController.text = '';
       _location = '';
 
       final DateTime date = widget.selectedDate;
@@ -206,35 +218,42 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            ListTile(
-              contentPadding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
-              leading: const Text(''),
-              title: TextField(
-                controller: TextEditingController(text: _subject),
-                onChanged: (String value) {
-                  _subject = value;
-                },
-                keyboardType: TextInputType.multiline,
-                maxLines: null,
-                style: TextStyle(
-                    fontSize: 25,
-                    color: defaultColor,
-                    fontWeight: FontWeight.w400),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Add title',
+            Form(
+              key: _formKey,
+              child: ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
+                leading: const Text(''),
+                title: TextFormField(
+                  controller: _serviceController,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter service name';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  style: TextStyle(
+                      fontSize: 25,
+                      color: defaultColor,
+                      fontWeight: FontWeight.w400),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Add title',
+                  ),
                 ),
               ),
             ),
             ListTile(
               contentPadding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
               leading: const Text(''),
-              title: TextField(
-                // controller: TextEditingController(
-                //   text: 'Staff details',
-                // ),
-                onChanged: (String value) {
-                  _subject = value;
+              title: TextFormField(
+                controller: _staffController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter the staff name';
+                  }
+                  return null;
                 },
                 keyboardType: TextInputType.multiline,
                 maxLines: null,
@@ -527,9 +546,9 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
                                     startTime: _startDate,
                                     endTime: _endDate,
                                     isAllDay: _isAllDay,
-                                    subject: _subject == ''
+                                    subject: _serviceController.text == ''
                                         ? '(No title)'
-                                        : _subject,
+                                        : _serviceController.text,
                                   ),
                               onChanged: (_PickerChangedDetails details) {
                                 setState(() {
@@ -618,10 +637,10 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
                 color: defaultColor,
               ),
               title: TextField(
-                controller: TextEditingController(text: _notes),
+                controller: _notesController,
                 cursorColor: Colors.amber,
                 onChanged: (String value) {
-                  _notes = value;
+                  _notesController.text = value;
                 },
                 keyboardType: TextInputType.multiline,
                 style: TextStyle(
@@ -693,49 +712,88 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData.light(),
-      child: Scaffold(
-        backgroundColor: ThemeData.light() != null &&
-                ThemeData.light().colorScheme.brightness == Brightness.dark
-            ? Colors.grey[850]
-            : Colors.white,
-        appBar: AppBar(
-          backgroundColor: widget.colorCollection[_selectedColorIndex],
-          leading: IconButton(
-            icon: const Icon(
-              Icons.close,
-              color: Colors.white,
+    return SafeArea(
+      child: Theme(
+        data: ThemeData.light(),
+        child: Scaffold(
+          backgroundColor: ThemeData.light() != null &&
+                  ThemeData.light().colorScheme.brightness == Brightness.dark
+              ? Colors.grey[850]
+              : Colors.white,
+          appBar: AppBar(
+            backgroundColor: widget.colorCollection[_selectedColorIndex],
+            leading: IconButton(
+              icon: const Icon(
+                Icons.close,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
             ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          actions: <Widget>[
-            IconButton(
-                padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                icon: const Icon(
-                  Icons.done,
-                  color: Colors.white,
+            actions: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(secondaryColor),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      Loader.show(
+                        context,
+                        isSafeAreaOverlay: false,
+                        isBottomBarOverlay: false,
+                        overlayFromBottom: 80,
+                        overlayColor: Colors.black26,
+                        progressIndicator: CircularProgressIndicator(
+                            backgroundColor: Colors.red),
+                        themeData: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.fromSwatch()
+                              .copyWith(secondary: Colors.green),
+                        ),
+                      );
+
+                      try {
+                        // await create();
+                        Loader.hide();
+                        Navigator.pop(context);
+                      } catch (e) {
+                        print(e);
+                      }
+                    }
+                  },
+                  child: Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-                onPressed: () {})
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-          child: Stack(
-            children: <Widget>[
-              _getAppointmentEditor(
-                  context,
-                  (ThemeData.light().colorScheme.brightness == Brightness.dark
-                      ? Colors.grey[850]
-                      : Colors.white)!,
-                  ThemeData.light().colorScheme.brightness != null &&
-                          ThemeData.light().colorScheme.brightness ==
-                              Brightness.dark
-                      ? Colors.white
-                      : Colors.black87)
+              ),
             ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
+            child: Stack(
+              children: <Widget>[
+                _getAppointmentEditor(
+                    context,
+                    (ThemeData.light().colorScheme.brightness == Brightness.dark
+                        ? Colors.grey[850]
+                        : Colors.white)!,
+                    ThemeData.light().colorScheme.brightness != null &&
+                            ThemeData.light().colorScheme.brightness ==
+                                Brightness.dark
+                        ? Colors.white
+                        : Colors.black87)
+              ],
+            ),
           ),
         ),
       ),
