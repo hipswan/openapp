@@ -70,7 +70,7 @@ class UserDrawer extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '{date of birth}',
+                                '{location}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16.0,

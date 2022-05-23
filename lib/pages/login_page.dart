@@ -8,7 +8,7 @@ import 'package:http/http.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/widgets/openapp_logo.dart';
 
-import '../model/user.dart';
+import '../model/user_controller.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
@@ -145,7 +145,7 @@ class LoginPage extends StatelessWidget {
                     }
                     return null;
                   },
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
                   ),
@@ -158,6 +158,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 child: TextFormField(
                   controller: password,
+                  obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'Password',
                     border: OutlineInputBorder(),

@@ -65,14 +65,19 @@ class _BusinessHomeState extends State<BusinessHome> {
     super.initState();
   }
 
+  //TODO: get business details
   getBusinessDetails() async {
-    await _business.createBusiness();
+    // await _business.createBusiness();
+
     Business business = await _business.getBusinessDetails();
     _business.businessStreamController.sink.add(business);
+
     Business appointments = await _business.getBusinessAppointments();
     _business.businessStreamController.sink.add(appointments);
+
     Business services = await _business.getBusinessServices();
     _business.businessStreamController.sink.add(services);
+
     Business staff = await _business.getBusinessStaffs();
     _business.businessStreamController.sink.add(staff);
   }
@@ -135,7 +140,7 @@ class _BusinessHomeState extends State<BusinessHome> {
   @override
   Widget build(BuildContext context) {
     Widget _calendar({_DataSource? events}) {
-      // _events = _DataSource(_appointments2);
+      _events = _DataSource(_appointments2);
       return Theme(
         /// The key set here to maintain the state,
         ///  when we change the parent of the widget
@@ -467,7 +472,7 @@ class _BusinessHomeState extends State<BusinessHome> {
       return;
     }
 
-    SchedulerBinding.instance?.addPostFrameCallback((Duration timeStamp) {
+    SchedulerBinding.instance.addPostFrameCallback((Duration timeStamp) {
       setState(() {
         _view = calendarController.view!;
 

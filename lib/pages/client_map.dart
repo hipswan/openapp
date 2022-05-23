@@ -204,12 +204,14 @@ class ClientMapState extends State<ClientMap> {
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     vertical: 20.0,
+                    horizontal: 20.0,
                   ),
                   child: TextField(
                     controller: startAddressController,
                     decoration: InputDecoration(
                       hintText: "Enter your starting address",
                       fillColor: Colors.white,
+                      filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(50),
                       ),
@@ -313,7 +315,40 @@ class ClientMapState extends State<ClientMap> {
                       (index) => Card(
                         key: ValueKey(index),
                         child: ListTile(
-                          title: Text(businessList[index]["title"] as String),
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(businessList[index]["title"] as String),
+                              Divider(),
+                              SizedBox(
+                                width: 100,
+                                height: 75,
+                                child: FlutterLogo(),
+                              ),
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Container(
+                                      padding: EdgeInsets.all(10),
+                                      child: Text(
+                                        '\$84',
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Container(
+                                      padding: EdgeInsets.all(10),
+                                      child: Text(
+                                        '0.8 miles',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
                           subtitle: Text(
                               businessList[index]["description"] as String),
                           trailing: IconButton(

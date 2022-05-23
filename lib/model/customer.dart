@@ -1,19 +1,20 @@
-class User {
+class Customer {
   final String name;
   final String account;
   final String userType;
 
-  User({
+  Customer({
     required this.name,
     required this.account,
     required this.userType,
   });
 
-  // factory User.fromDocument(DocumentSnapshot doc) {
-  //   return User(
+  // factory Customer.fromDocument(DocumentSnapshot doc) {
+  //   return Customer(
   //     name: doc['name'],
   //     account: doc['account'],
   //     userType: doc['userType'],
   //   );
   // }
+
 }

@@ -332,6 +332,18 @@ class _HomePageState extends State<HomePage> {
           decoration: InputDecoration(
             suffixIcon: const Icon(Icons.search),
             hintText: 'search for your favourite place?',
+            fillColor: Colors.white,
+            filled: true,
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.white,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.white,
+              ),
+            ),
             hintStyle: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -343,69 +355,81 @@ class _HomePageState extends State<HomePage> {
       ),
     );
 
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          selectImage(context);
-        },
-        tooltip: 'Increment',
-        child: const Icon(
-          Icons.add,
-        ),
-      ),
-      appBar: AppBar(
-        title: Text(
-          'Welcome!',
-          style: homePageTextStyle,
-        ),
-        centerTitle: true,
-        shadowColor: const Color.fromARGB(128, 32, 147, 255),
-        backgroundColor: Colors.white,
-        leading: IconButton(
+    return SafeArea(
+      child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: secondaryColor,
           onPressed: () {
-            Navigator.of(context).pop();
+            selectImage(context);
           },
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: Colors.black,
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(10),
+          tooltip: 'Increment',
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
           ),
         ),
-        elevation: 0,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              child: FlutterLogo(),
-              radius: 20,
+        appBar: AppBar(
+          title: Text(
+            'Welcome!',
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ],
-      ),
-      body: Container(
-        color: homePageColor,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 25.0,
-        ),
-        child: ListView(
-          children: [
-            introText,
-            searchWidget,
-            Section(
-                sectionName: 'Top Trending Places',
-                tagColor: Colors.green,
-                tagName: 'New',
-                onPressed: () {}),
-            listShopTile,
-            Section(sectionName: 'Explore Clinics', onPressed: () {}),
-            listClinicTile,
-            Section(sectionName: 'Explore Salon', onPressed: () {}),
-            listSalonTile,
-            exploreCategories,
-            listCategoryTile,
+          centerTitle: true,
+          shadowColor: const Color.fromARGB(128, 32, 147, 255),
+          backgroundColor: Colors.redAccent,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            color: Colors.white,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(10),
+            ),
+          ),
+          elevation: 5,
+          actions: const [
+            Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircleAvatar(
+                child: CircleAvatar(
+                  child: Text(
+                    'A',
+                  ),
+                ),
+                radius: 20,
+              ),
+            ),
           ],
+        ),
+        body: Container(
+          color: homePageColor,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 25.0,
+          ),
+          child: ListView(
+            children: [
+              introText,
+              searchWidget,
+              Section(
+                  sectionName: 'Top Trending Places',
+                  tagColor: Colors.green,
+                  tagName: 'New',
+                  onPressed: () {}),
+              listShopTile,
+              Section(sectionName: 'Explore Clinics', onPressed: () {}),
+              listClinicTile,
+              Section(sectionName: 'Explore Salon', onPressed: () {}),
+              listSalonTile,
+              exploreCategories,
+              listCategoryTile,
+            ],
+          ),
         ),
       ),
     );

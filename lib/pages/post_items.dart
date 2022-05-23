@@ -13,7 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as Im;
 import 'package:uuid/uuid.dart';
 
-import '../model/user.dart';
+import '../model/user_controller.dart';
 
 // CollectionReference sellerItemsRef =
 //     FirebaseFirestore.instance.collection('sellerItems');

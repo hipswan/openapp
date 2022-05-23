@@ -6,18 +6,18 @@ import 'package:http/http.dart' as http;
 import 'package:openapp/utility/appurl.dart';
 
 class Business extends ChangeNotifier {
-  late String? name;
-  late String? description;
-  late String? address;
-  late String? phone;
-  late String? email;
-  late String? businessCity;
-  late String? businessState;
-  late String? businessZip;
-  late String? businessCategory;
-  late var businessServices;
-  late var businessAppointments;
-  late var businessStaffs;
+  String? name;
+  String? description;
+  String? address;
+  String? phone;
+  String? email;
+  String? businessCity;
+  String? businessState;
+  String? businessZip;
+  String? businessCategory;
+  var businessServices;
+  var businessAppointments;
+  var businessStaffs;
 
   Business.create();
 
@@ -87,6 +87,14 @@ class Business extends ChangeNotifier {
 
   Future<Business> getBusinessDetails() async {
     // return await Future.delayed(Duration(seconds: 2), () {
+
+//      businessSignI = {
+//     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbElkIjoiYXR1bHNpbmdoMTU4QGdtYWlsLmNvbSIsImlkIjo1LCJpYXQiOjE2NTMyODcwNDQsImV4cCI6MTY1MzY0NzA0NH0.rt6B6MR63sqfQj8OBkrRW97gNlC6WQDjcL7vW6D0OXI",
+//     "id": 5,
+//     "emailId": "atulsingh158@gmail.com",
+//     "firstName": "Atul Singh",
+//     "lastName": ""
+// }
     return this.copyWith(
       name: 'Business Name',
       description: 'Business Description',

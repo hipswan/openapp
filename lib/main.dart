@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:openapp/constant.dart';
 import 'package:openapp/pages/business_home.dart';
 import 'package:openapp/pages/business_page.dart';
 import 'package:openapp/pages/client_map.dart';
@@ -52,6 +53,28 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.red,
         secondaryHeaderColor: Colors.redAccent,
         colorScheme: ColorScheme.light(primary: Colors.redAccent),
+        inputDecorationTheme: InputDecorationTheme(
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: secondaryColor,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: secondaryColor,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Colors.red,
+            ),
+          ),
+          border: OutlineInputBorder(),
+          labelStyle: TextStyle(
+            color: secondaryColor,
+            fontSize: 18.0,
+          ),
+        ),
       ),
       home: SafeArea(
         child: TypeSelection(),
