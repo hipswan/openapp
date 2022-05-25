@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/widgets/Form/info_form.dart';
@@ -7,9 +8,17 @@ import 'package:openapp/pages/widgets/info_wall.dart';
 import 'package:openapp/pages/widgets/services.dart';
 import 'package:openapp/pages/widgets/staff.dart';
 
-class BusinessProfile extends StatelessWidget {
+import '../utility/appurl.dart';
+import 'business_home.dart';
+
+class BusinessProfile extends StatefulWidget {
   const BusinessProfile({Key? key}) : super(key: key);
 
+  @override
+  State<BusinessProfile> createState() => _BusinessProfileState();
+}
+
+class _BusinessProfileState extends State<BusinessProfile> {
   @override
   Widget build(BuildContext context) {
     Widget businessMetaData = Row(
@@ -29,7 +38,15 @@ class BusinessProfile extends StatelessWidget {
                 ),
               ),
               margin: EdgeInsets.all(10),
-              child: FlutterLogo(),
+              child: currentBusiness?.image1 != null
+                  ? CachedNetworkImage(
+                      imageUrl:
+                          '${AppConstant.PICTURE_ASSET_PATH}/${currentBusiness?.image1}',
+                      placeholder: (context, value) =>
+                          CircularProgressIndicator(),
+                      fit: BoxFit.cover,
+                    )
+                  : FlutterLogo(),
             ),
             Positioned(
               right: 0,
@@ -51,13 +68,15 @@ class BusinessProfile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '/Business Name',
+              '${currentBusiness?.bName}',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text('/description of business'),
+            Text(
+              '${currentBusiness?.description}',
+            ),
             SizedBox(
               height: 25,
             ),
@@ -186,7 +205,7 @@ class BusinessProfile extends StatelessWidget {
                   children: [
                     InfoWall(),
                     Services(),
-                    Staff(),
+                    Staffs(),
                     BusinessLocation(),
                   ],
                 ),

@@ -3,12 +3,18 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:http/http.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/widgets/openapp_logo.dart';
 
 import '../model/user_controller.dart';
+import '../utility/Network/network_connectivity.dart';
+import 'dart:developer' as dev;
+import 'package:http/http.dart' as http;
+
+import '../utility/appurl.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
@@ -81,6 +87,25 @@ class LoginPage extends StatelessWidget {
     );
   }
 
+  siginUser() async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        final response = await http.post(
+          Uri.parse('${AppConstant.SIGNIN}'),
+          body: {"emailId": emailId.text, "password": password.text},
+        );
+        if (response.statusCode == 200) {
+        } else {
+          throw Exception('Failed to create business');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -110,7 +135,14 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/home');
+                  //TODO: Loader shown
+                  siginUser().then((value) {
+                    Loader.hide();
+                    Navigator.pushNamed(context, '/home');
+                  }).catchError((error) {
+                    Loader.hide();
+                    dev.log(error.toString());
+                  });
                 },
                 child: Text(
                   'Login',

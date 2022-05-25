@@ -3,13 +3,18 @@ import 'package:flutter/rendering.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/widgets/Form/staff_form.dart';
 
+import '../../model/staff.dart';
+
 class StaffProfile extends StatefulWidget {
-  final String name;
-  final String position;
+  final Staff staff;
+  final VoidCallback onDelete;
+  final VoidCallback onEdit;
+
   const StaffProfile({
     Key? key,
-    required this.name,
-    required this.position,
+    required this.staff,
+    required this.onDelete,
+    required this.onEdit,
   }) : super(key: key);
 
   @override
@@ -43,26 +48,26 @@ class _StaffProfileState extends State<StaffProfile> {
     );
 
     //Description Text
-    Widget shopDescriptionDetails = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-      ),
-      child: Column(
-        children: const [
-          Text(
-            'lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-            textAlign: TextAlign.justify,
-            style: TextStyle(
-              fontSize: 14,
-            ),
-            strutStyle: StrutStyle(
-              fontSize: 16,
-              forceStrutHeight: true,
-            ),
+    Widget shopDescriptionDetails(String description) => Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
           ),
-        ],
-      ),
-    );
+          child: Column(
+            children: [
+              Text(
+                '$description',
+                textAlign: TextAlign.justify,
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+                strutStyle: StrutStyle(
+                  fontSize: 16,
+                  forceStrutHeight: true,
+                ),
+              ),
+            ],
+          ),
+        );
 
     return SafeArea(
       child: Scaffold(
@@ -80,6 +85,48 @@ class _StaffProfileState extends State<StaffProfile> {
               bottom: Radius.circular(10),
             ),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton.icon(
+                label: Text('Delete'),
+                icon: Icon(
+                  Icons.delete_forever_outlined,
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(secondaryColor),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+                onPressed: () async {
+                  widget.onDelete();
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton.icon(
+                label: Text('Delete'),
+                icon: Icon(
+                  Icons.delete_forever_outlined,
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(secondaryColor),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+                onPressed: () async {
+                  widget.onEdit();
+                },
+              ),
+            ),
+          ],
         ),
         resizeToAvoidBottomInset: false,
         floatingActionButton: FloatingActionButton(
@@ -152,7 +199,7 @@ class _StaffProfileState extends State<StaffProfile> {
                           tag: widget.key.hashCode,
                           child: CircleAvatar(
                             backgroundImage: AssetImage(
-                              'assets/images/icons/avatar.png',
+                              widget.staff.profilePicture!,
                             ),
                           ),
                         ),
@@ -180,26 +227,26 @@ class _StaffProfileState extends State<StaffProfile> {
                   Expanded(
                     child: ConnectTile(
                       asset: 'assets/images/connects/tiktok_logo.png',
-                      label: '@Tiktok',
+                      label: '@${widget.staff.tiktokProfile}',
                     ),
                   ),
                   Expanded(
                     child: ConnectTile(
                       asset: 'assets/images/connects/fb_logo.png',
-                      label: '@Facebook',
+                      label: '@${widget.staff.fbProfile}',
                     ),
                   ),
                   Expanded(
                     child: ConnectTile(
                       asset: 'assets/images/connects/ig_logo.png',
-                      label: '@Instagram',
+                      label: '@${widget.staff.igProfile}',
                     ),
                   ),
                 ],
               ),
             ),
             staffDescription,
-            shopDescriptionDetails,
+            shopDescriptionDetails(widget.staff.desc!),
           ],
         ),
       ),

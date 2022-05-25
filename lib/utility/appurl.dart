@@ -16,7 +16,12 @@ class AppConstant {
 
   //Business
 
-  static const String GET_BUSINESS_STAFF = "business_login";
+  static getBusiness(bId) => BASE_URL + "business/$bId";
+
+  static const PICTURE_ASSET_PATH =
+      'http://rxfarm91.cse.buffalo.edu:5001/' + "assets/";
+  static const PICTURE_UPLOAD = BASE_URL + "file";
+
   static const String BUSINESS_POST_INFO = "business_login";
 
   static const String BUSINESS_GET_INFO = "business_login";
@@ -31,20 +36,22 @@ class AppConstant {
   static String updateBusinessAvailabilityByDate(id, date) =>
       BASE_URL + "business/bId=$id";
 
-  static const pictureUpload = BASE_URL + "file";
-
-  static const ADD_SERVICE = BASE_URL + "business-services";
-
-  static GET_SERVICE_BY_BID(id) => BASE_URL + "business-services?bId=$id";
-
+  //Services
+  static const BUSINESS_SERVICES = BASE_URL + "business-services";
+  static updateBusinessService(bId) => BASE_URL + "business-services/$bId";
+  static getBusinessService(bId) => BASE_URL + "business-services?bId=$bId";
+  static deleteBusinesssHourById(bId, sId) =>
+      BASE_URL + "business-services/$bId/$sId";
   static GET_SERVICE_BY_ID(id) => BASE_URL + "business-services?bId=$id";
 
   static String getBusinessById(id) => BASE_URL + "business/$id";
   //staff
   static const String GET_STAFF_BY_BUSINESS_ID = "business_login";
 
-  static const String POST_STAFF_BY_BUSINESS_ID = "business_login";
-
+  static addBusinessStaff(bId) => BASE_URL + 'business/$bId/staff';
+  static getBusinessStaff(bId) => BASE_URL + 'business/$bId/staff';
+  static deleteBusinessStaff(bId, sId) =>
+      BASE_URL + 'business/$bId/staff/$sId/delete';
   static getBusinessStaffByID(bussinessID, staffID) => "business_login";
 
   static updateBusinessStaffByID(bussinessID, staffID) => "business_login";
@@ -71,10 +78,9 @@ class AppConstant {
 
   //Business Hours
 
-  static const POST_BUSINESS_HOURS = "business_login";
+  static const BUSINESS_HOURS = BASE_URL + "businness-hours";
 
-  static const GET_BUSINESS_HOURS = "business_login";
-  static getBusinessHoursByID(id) => BASE_URL + "business_hours?bId=$id";
+  static getBusinesssHourById(bId) => BASE_URL + "businness-hours?bId=$bId";
 
   static updateBusinessHoursByID(id) => "business_login";
 

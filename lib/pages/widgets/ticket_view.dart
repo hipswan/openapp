@@ -8,12 +8,16 @@ class TicketView extends StatelessWidget {
   final serviceName;
   final serviceDescription;
   final servicePrice;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const TicketView(
       {Key? key,
       required this.serviceName,
       required this.serviceDescription,
-      required this.servicePrice})
+      required this.servicePrice,
+      required this.onEdit,
+      required this.onDelete})
       : super(key: key);
 
   @override
@@ -41,7 +45,7 @@ class TicketView extends StatelessWidget {
             children: [
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
-                onPressed: (context) {},
+                onPressed: (context) => onDelete,
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
                 icon: Icons.delete,
@@ -57,12 +61,7 @@ class TicketView extends StatelessWidget {
                 // An action can be bigger than the others.
                 flex: 2,
                 onPressed: (context) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ServiceForm(),
-                    ),
-                  );
+                  onEdit();
                 },
                 backgroundColor: Colors.blue[200]!,
                 foregroundColor: Colors.black,
@@ -120,12 +119,7 @@ class TicketView extends StatelessWidget {
                                     ),
                                     IconButton(
                                       onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ServiceForm(),
-                                          ),
-                                        );
+                                        onEdit();
                                       },
                                       icon: Icon(
                                         Icons.edit,

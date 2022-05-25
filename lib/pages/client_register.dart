@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import '../model/user_controller.dart';
 import '../utility/Network/network_connectivity.dart';
 import '../utility/appurl.dart';
+import 'dart:developer' as dev;
 
 class ClientRegister extends StatelessWidget {
   ClientRegister({Key? key}) : super(key: key);
@@ -152,14 +153,14 @@ class ClientRegister extends StatelessWidget {
                       ),
                     );
 
-                    try {
-                      await sigupUser();
+                    await sigupUser().then((value) {
                       Loader.hide();
                       Navigator.pushNamedAndRemoveUntil(
                           context, '/business_home', (route) => false);
-                    } catch (e) {
-                      print(e);
-                    }
+                    }).catchError((error) {
+                      Loader.hide();
+                      dev.log(error.toString());
+                    });
                   }
                 },
                 child: Text(

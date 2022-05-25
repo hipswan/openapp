@@ -12,6 +12,7 @@ import 'package:openapp/utility/Network/network_connectivity.dart';
 import 'package:http/http.dart' as http;
 import 'package:openapp/utility/appurl.dart';
 import '../constant.dart';
+import 'dart:developer' as dev;
 
 class BusinessRegister extends StatefulWidget {
   const BusinessRegister({Key? key}) : super(key: key);
@@ -73,7 +74,7 @@ class _BusinessRegisterState extends State<BusinessRegister> {
     );
   }
 
-  sigupUser() async {
+  Future signupUser() async {
     if (await CheckConnectivity.checkInternet()) {
       try {
         final response =
@@ -91,6 +92,9 @@ class _BusinessRegisterState extends State<BusinessRegister> {
             "bType": businessCategory,
             "bZip": businessZip.text,
           },
+          "businessHours": [],
+          "staff": [],
+          "businessServices": []
         });
         if (response.statusCode == 200) {
         } else {
@@ -127,211 +131,255 @@ class _BusinessRegisterState extends State<BusinessRegister> {
           ),
           body: Form(
             key: _formKey,
-            child: ListView(
-              children: [
-                OpenappLogo(),
-                CupertinoStepper(
-                  type: StepperType.vertical,
-                  currentStep: currentStep,
-                  onStepTapped: (step) => setState(() => currentStep = step),
-                  onStepCancel:
-                      canCancel ? () => setState(() => --currentStep) : null,
-                  onStepContinue: canContinue
-                      ? () async {
-                          if (currentStep == 1) {
-                            if (_formKey.currentState!.validate()) {
-                              Loader.show(
-                                context,
-                                isSafeAreaOverlay: false,
-                                isBottomBarOverlay: false,
-                                overlayFromBottom: 80,
-                                overlayColor: Colors.black26,
-                                progressIndicator: CircularProgressIndicator(
-                                    backgroundColor: Colors.red),
-                                themeData: Theme.of(context).copyWith(
-                                  colorScheme: ColorScheme.fromSwatch()
-                                      .copyWith(secondary: Colors.green),
-                                ),
-                              );
+            child: Scrollbar(
+              child: ListView(
+                children: [
+                  OpenappLogo(),
+                  CupertinoStepper(
+                    type: StepperType.vertical,
+                    currentStep: currentStep,
+                    onStepTapped: (step) => setState(() => currentStep = step),
+                    onStepCancel:
+                        canCancel ? () => setState(() => --currentStep) : null,
+                    onStepContinue: canContinue
+                        ? () async {
+                            if (currentStep == 1) {
+                              if (_formKey.currentState!.validate()) {
+                                Loader.show(
+                                  context,
+                                  isSafeAreaOverlay: false,
+                                  isBottomBarOverlay: false,
+                                  overlayFromBottom: 80,
+                                  overlayColor: Colors.black26,
+                                  progressIndicator: CircularProgressIndicator(
+                                      backgroundColor: Colors.red),
+                                  themeData: Theme.of(context).copyWith(
+                                    colorScheme: ColorScheme.fromSwatch()
+                                        .copyWith(secondary: Colors.green),
+                                  ),
+                                );
 
-                              try {
-                                await sigupUser();
-                                Loader.hide();
-                                Navigator.pushNamedAndRemoveUntil(context,
-                                    '/business_home', (route) => false);
-                              } catch (e) {
-                                print(e);
-                              }
-                            }
-                          } else
-                            setState(() => ++currentStep);
-                        }
-                      : null,
-                  steps: [
-                    _buildStep(
-                      title: Text(
-                        'Personal Details',
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.redAccent,
-                        ),
-                      ),
-                      isActive: 0 == currentStep,
-                      state: 0 == currentStep
-                          ? StepState.editing
-                          : 0 < currentStep
-                              ? StepState.complete
-                              : StepState.indexed,
-                      subtitle: 'Enter your personal details',
-                      content: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              controller: firstName,
-                              decoration: InputDecoration(
-                                labelText: 'First Name',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              controller: lastName,
-                              decoration: InputDecoration(
-                                labelText: 'Last Name',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              controller: email,
-                              decoration: InputDecoration(
-                                labelText: 'Email',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              keyboardType: TextInputType.number,
-                              controller: phoneNumber,
-                              decoration: InputDecoration(
-                                labelText: 'Phone Number',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildStep(
-                      title: Text(
-                        'Business Details',
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ),
-                      isActive: 1 == currentStep,
-                      state: 1 == currentStep
-                          ? StepState.editing
-                          : 1 < currentStep
-                              ? StepState.complete
-                              : StepState.indexed,
-                      subtitle: 'Enter your business details',
-                      content: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              controller: businessName,
-                              decoration: InputDecoration(
-                                labelText: 'Business Name',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: DropdownButtonFormField<String>(
-                              value: businessCategory,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Please enter business type';
-                                }
-                                return null;
-                              },
-                              items: [
-                                DropdownMenuItem(
-                                    child: Text('Restaurant'),
-                                    value: 'Restaurant'),
-                                DropdownMenuItem(
-                                    child: Text('Salon'), value: 'Salon'),
-                                DropdownMenuItem(
-                                    child: Text('Clinic'), value: 'Clinic'),
-                              ],
-                              onChanged: (value) {
-                                setState(() {
-                                  businessCategory = value;
+                                signupUser().then((value) {
+                                  Loader.hide();
+                                  Navigator.pushNamedAndRemoveUntil(context,
+                                      '/business_home', (route) => false);
+                                }).catchError((e) {
+                                  Loader.hide();
+                                  dev.log(
+                                    e.toString(),
+                                  );
                                 });
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'Select Category',
-                                border: OutlineInputBorder(),
+                              }
+                            } else
+                              setState(
+                                () => ++currentStep,
+                              );
+                          }
+                        : null,
+                    steps: [
+                      _buildStep(
+                        title: Text(
+                          'Personal Details',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        isActive: 0 == currentStep,
+                        state: 0 == currentStep
+                            ? StepState.editing
+                            : 0 < currentStep
+                                ? StepState.complete
+                                : StepState.indexed,
+                        subtitle: 'Enter your personal details',
+                        content: Column(
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: firstName,
+                                validator: (value) {
+                                  if (value?.isEmpty ?? false) {
+                                    return 'Please enter your first name';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'First Name',
+                                  border: OutlineInputBorder(),
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              controller: businessState,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Please enter zip code';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'State, City',
-                                border: OutlineInputBorder(),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: lastName,
+                                validator: (value) {
+                                  if (value?.isEmpty ?? false) {
+                                    return 'Please enter your last name';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Last Name',
+                                  border: OutlineInputBorder(),
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: TextFormField(
-                              controller: businessZip,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Please enter zip code';
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'Zip/Postal Code',
-                                border: OutlineInputBorder(),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: email,
+                                validator: (value) {
+                                  if (value?.isEmpty ?? false) {
+                                    return 'Please enter your email';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  border: OutlineInputBorder(),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                keyboardType: TextInputType.number,
+                                controller: phoneNumber,
+                                validator: (value) {
+                                  if (value?.isEmpty ?? false) {
+                                    return 'Please enter your phone number';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Phone Number',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
+                      _buildStep(
+                        title: Text(
+                          'Business Details',
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
+                        ),
+                        isActive: 1 == currentStep,
+                        state: 1 == currentStep
+                            ? StepState.editing
+                            : 1 < currentStep
+                                ? StepState.complete
+                                : StepState.indexed,
+                        subtitle: 'Enter your business details',
+                        content: Column(
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: businessName,
+                                validator: (value) {
+                                  if (value?.isEmpty ?? false) {
+                                    return 'Please enter your business name';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Business Name',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: DropdownButtonFormField<String>(
+                                value: businessCategory,
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return 'Please enter business type';
+                                  }
+                                  return null;
+                                },
+                                items: [
+                                  DropdownMenuItem(
+                                      child: Text('Restaurant'),
+                                      value: 'Restaurant'),
+                                  DropdownMenuItem(
+                                      child: Text('Salon'), value: 'Salon'),
+                                  DropdownMenuItem(
+                                      child: Text('Clinic'), value: 'Clinic'),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    businessCategory = value;
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Select Category',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: businessState,
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return 'Please enter state, city';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'State, City',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: businessZip,
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return 'Please enter zip code';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Zip/Postal Code',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  child: alreadyHaveAnAccount(context),
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                    ),
+                    child: alreadyHaveAnAccount(context),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

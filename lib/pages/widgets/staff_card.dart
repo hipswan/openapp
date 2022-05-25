@@ -7,8 +7,15 @@ import 'hex_color.dart';
 class StaffCard extends StatelessWidget {
   final String name;
   final String position;
-  StaffCard({Key? key, required this.name, required this.position})
-      : super(key: key);
+  final String image;
+  final VoidCallback onTap;
+  const StaffCard({
+    Key? key,
+    required this.name,
+    required this.position,
+    required this.onTap,
+    required this.image,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -48,16 +55,7 @@ class StaffCard extends StatelessWidget {
           Divider(),
           TextButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => StaffProfile(
-                    key: key,
-                    name: name,
-                    position: position,
-                  ),
-                ),
-              );
+              onTap;
             },
             child: Text(
               'show more',

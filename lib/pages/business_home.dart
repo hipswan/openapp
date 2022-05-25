@@ -117,78 +117,70 @@ class _BusinessHomeState extends State<BusinessHome> {
   }
 
   //TODO: get business details
-  getBusinessDetails() async {
+  Future<Business> getBusinessDetails() async {
     // await _business.createBusiness();
 
-    signInBusiness().then((response) async {
-      dev.log(response.toString());
-      //TODO: save business details
+    var res = await signInBusiness();
+    dev.log(res.toString());
+    //TODO: save business details
 
-      _business.fromSignIn(response);
+    _business.fromSignIn(res);
 
-      _loadingStatus = 'Loading business appointments...';
-      Loader.show(
-        context,
-        isSafeAreaOverlay: false,
-        isBottomBarOverlay: false,
-        overlayFromBottom: 80,
-        overlayColor: Colors.black26,
-        progressIndicator: Material(
-          child: CircularProgressIndicator(backgroundColor: Colors.red),
-        ),
-        themeData: Theme.of(context).copyWith(
-          colorScheme:
-              ColorScheme.fromSwatch().copyWith(secondary: Colors.green),
-        ),
-      );
+    _loadingStatus = 'Loading business appointments...';
+    // Loader.show(
+    //   context,
+    //   isSafeAreaOverlay: false,
+    //   isBottomBarOverlay: false,
+    //   overlayFromBottom: 80,
+    //   overlayColor: Colors.black26,
+    //   progressIndicator: Material(
+    //     child: CircularProgressIndicator(backgroundColor: Colors.red),
+    //   ),
+    //   themeData: Theme.of(context).copyWith(
+    //     colorScheme:
+    //         ColorScheme.fromSwatch().copyWith(secondary: Colors.green),
+    //   ),
+    // );
 
-      try {
-        final res = await fetchBusinessAppointments(_business.bId);
-        //TODO: save appointments details
-        _business.saveAppointments(res);
-        Loader.hide();
-      } catch (e) {
-        throw e;
-      }
+    res = await fetchBusinessAppointments(_business.bId);
+    //TODO: save appointments details
+    _business.saveAppointments(res);
 
-      //  _loadingStatus = 'Loading business services...';
+    //  _loadingStatus = 'Loading business services...';
 
-      // AwesomeDialog(
-      //   context: context,
-      //   dialogType: DialogType.INFO,
-      //   animType: AnimType.BOTTOMSLIDE,
-      //   title: 'Fetching Business Details',
-      //   desc: _loadingStatus,
-      //   btnCancelOnPress: () {},
-      //   btnOkOnPress: () {},
-      // )..show();
-      // try {
-      //   await fetchBusinessAppointments();
-      //   //TODO: save appointments details
-      //   AwesomeDialog(
-      //     context: context,
-      //     dialogType: DialogType.SUCCES,
-      //     animType: AnimType.BOTTOMSLIDE,
-      //     title: 'Fetched Business Details',
-      //     desc: _loadingStatus,
-      //     btnCancelOnPress: () {},
-      //     btnOkOnPress: () {},
-      //   )..show();
-      // } catch (e) {
-      //   throw e;
-      // }
+    // AwesomeDialog(
+    //   context: context,
+    //   dialogType: DialogType.INFO,
+    //   animType: AnimType.BOTTOMSLIDE,
+    //   title: 'Fetching Business Details',
+    //   desc: _loadingStatus,
+    //   btnCancelOnPress: () {},
+    //   btnOkOnPress: () {},
+    // )..show();
+    // try {
+    //   await fetchBusinessAppointments();
+    //   //TODO: save appointments details
+    //   AwesomeDialog(
+    //     context: context,
+    //     dialogType: DialogType.SUCCES,
+    //     animType: AnimType.BOTTOMSLIDE,
+    //     title: 'Fetched Business Details',
+    //     desc: _loadingStatus,
+    //     btnCancelOnPress: () {},
+    //     btnOkOnPress: () {},
+    //   )..show();
+    // } catch (e) {
+    //   throw e;
+    // }
 
-      // await _business.getBusinessServices();
-      // _loadingStatus = 'Getting business services...';
+    // await _business.getBusinessServices();
+    // _loadingStatus = 'Getting business services...';
 
-      // _business.businessStreamController.sink.add(null);
+    // _business.businessStreamController.sink.add(null);
 
-      // Business staff = await _business.getBusinessStaffs();
-      _business.businessStreamController.sink.add(_business);
-    }).catchError((e) {
-      _loadingStatus = 'Failed to get business details reason: $e';
-      _business.businessStreamController.addError(e);
-    });
+    // Business staff = await _business.getBusinessStaffs();
+    // _business.businessStreamController.sink.add(_business);
+    return _business;
   }
 
   /// Returns the month name based on the month value passed from date.
@@ -279,8 +271,8 @@ class _BusinessHomeState extends State<BusinessHome> {
             ),
           ),
         ),
-        body: StreamBuilder<Business>(
-            stream: _business.businessStream,
+        body: FutureBuilder<Business>(
+            future: getBusinessDetails(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 Business business = snapshot.data!;

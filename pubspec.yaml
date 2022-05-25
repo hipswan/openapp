@@ -52,6 +52,13 @@ dependencies:
   shared_preferences: ^2.0.15
   flutter_overlay_loader: ^2.0.0
   awesome_dialog: ^2.2.1
+  path_provider: ^2.0.10
+  carousel_slider: ^4.1.1
+  toggle_switch: ^2.0.1
+  share_plus: ^4.0.4
+  sliver_tools:
+
+
 
 flutter_icons:
   android: true

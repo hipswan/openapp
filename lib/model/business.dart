@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:openapp/model/Service.dart';
+import 'package:openapp/model/staff.dart';
 import 'package:openapp/utility/Network/network_connectivity.dart';
 import 'package:openapp/utility/Network/network_helper.dart';
 import 'package:openapp/utility/appurl.dart';
@@ -37,6 +39,7 @@ class Business {
     this.long,
     this.extraData3,
     this.appointments,
+    this.staff,
   });
 
   String? token;
@@ -59,6 +62,8 @@ class Business {
   String? long;
   String? extraData3;
   List<BusinessAppointment>? appointments;
+  List<Staff>? staff;
+  List<Service>? services;
   StreamController<Business> _streamController = StreamController.broadcast();
   Stream<Business> get businessStream => _streamController.stream;
   get businessStreamController => _streamController;

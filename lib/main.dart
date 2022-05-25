@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/model/business.dart';
 import 'package:openapp/pages/business_home.dart';
 import 'package:openapp/pages/business_page.dart';
 import 'package:openapp/pages/client_map.dart';
@@ -18,7 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 late SharedPreferences? prefs;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
+  prefs = await SharedPreferences.getInstance();
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Material(
       child: Container(

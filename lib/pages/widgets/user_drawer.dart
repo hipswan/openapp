@@ -1,5 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:openapp/constant.dart';
 
+import '../../utility/appurl.dart';
+import '../business_home.dart';
 import '../business_profile.dart';
 import 'drawer_menu.dart';
 
@@ -23,13 +27,16 @@ class UserDrawer extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.asset(
-                      'assets/images/drawer.png',
-                      repeat: ImageRepeat.repeat,
-                      fit: BoxFit.cover,
-                      color: Colors.redAccent,
-                      // colorBlendMode: BlendMode.plus,
-                    ),
+                    child: currentBusiness?.image1 != null
+                        ? CachedNetworkImage(
+                            imageUrl:
+                                '${AppConstant.PICTURE_ASSET_PATH}/${currentBusiness?.image1}',
+                            placeholder: (context, value) => Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : FlutterLogo(),
                   ),
                   Padding(
                     padding: EdgeInsets.only(
@@ -44,14 +51,19 @@ class UserDrawer extends StatelessWidget {
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: Colors.white,
-                              width: 5.0,
+                              width: 2.0,
                             ),
                           ),
                           child: CircleAvatar(
-                            backgroundImage: Image.asset(
-                              'assets/images/businessBack2.jpg',
-                            ).image,
-                            radius: 50.0,
+                            child: Text(
+                              '${currentBusiness?.bName?.substring(0, 1).toUpperCase()}',
+                              style: TextStyle(
+                                fontSize: 30.0,
+                                color: Colors.white,
+                              ),
+                            ),
+                            backgroundColor: secondaryColor,
+                            radius: 32.0,
                           ),
                         ),
                         SizedBox(
@@ -62,7 +74,7 @@ class UserDrawer extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Business Name',
+                                '${currentBusiness?.bName}',
                                 style: TextStyle(
                                   fontSize: 18.0,
                                   color: Colors.white,
@@ -70,7 +82,7 @@ class UserDrawer extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '{location}',
+                                '${currentBusiness?.bCity}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16.0,
