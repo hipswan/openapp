@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:openapp/constant.dart';
 
-import '../../../model/Service.dart';
+import '../../../model/service.dart';
 import '../../../utility/Network/network_connectivity.dart';
 import '../../../utility/appurl.dart';
 import '../../business_home.dart';
@@ -21,12 +22,13 @@ class ServiceForm extends StatefulWidget {
 }
 
 class _ServiceFormState extends State<ServiceForm> {
+  var networkImgPath;
   var imagePath;
   TextEditingController _name = TextEditingController();
   TextEditingController _price = TextEditingController();
   TextEditingController _duration = TextEditingController();
   TextEditingController _description = TextEditingController();
-
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   selectImage(parentContext) {
     return showDialog(
       context: parentContext,
@@ -97,7 +99,7 @@ class _ServiceFormState extends State<ServiceForm> {
         var headers = {'Authorization': 'Bearer ${currentBusiness?.token}'};
 
         var request = http.MultipartRequest(
-            'POST', Uri.parse('$AppConstant.PICTURE_UPLOAD'));
+            'POST', Uri.parse('${AppConstant.PICTURE_UPLOAD}'));
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
@@ -108,7 +110,7 @@ class _ServiceFormState extends State<ServiceForm> {
 
         http.StreamedResponse response = await request.send();
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 201) {
           var parsedBody = json.decode(await response.stream.bytesToString());
           return parsedBody['filename'];
         } else {
@@ -138,11 +140,13 @@ class _ServiceFormState extends State<ServiceForm> {
           response = await http.post(
             Uri.parse('${AppConstant.BUSINESS_SERVICES})'),
             body: body,
+            headers: {'Authorization': 'Bearer ${currentBusiness?.token}'},
           );
         } else {
+          var url =
+              AppConstant.updateBusinessService(widget.selectedService?.bId);
           response = await http.patch(
-            Uri.parse(
-                '${AppConstant.updateBusinessService(currentBusiness?.bId)}'),
+            Uri.parse('$url'),
             body: body,
           );
         }
@@ -167,11 +171,12 @@ class _ServiceFormState extends State<ServiceForm> {
       _price.text = widget.selectedService?.cost.toString() ?? '';
       _duration.text = widget.selectedService?.time.toString() ?? '';
       _description.text = widget.selectedService?.desc ?? '';
-      imagePath = widget.selectedService?.picture ?? '';
+      networkImgPath = widget.selectedService?.picture ?? '';
     } else {
       _name.text = '';
       _price.text = '';
       _duration.text = '';
+      networkImgPath = '';
       _description.text = '';
     }
   }
@@ -192,199 +197,297 @@ class _ServiceFormState extends State<ServiceForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: Text('Maintain Services'),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(secondaryColor),
-                shape: MaterialStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+    return SafeArea(
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          title: Text('Maintain Services'),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () async {
+              FocusScopeNode currentFocus = FocusScope.of(context);
+
+              if (!currentFocus.hasPrimaryFocus) {
+                currentFocus.unfocus();
+              }
+              await Future.delayed(Duration(milliseconds: 100));
+              Navigator.pop(context);
+            },
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(secondaryColor),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                 ),
-              ),
-              onPressed: () async {
-                uploadImage().then((asset) async {
-                  await maintainService(asset);
-                }
+                onPressed: () async {
+                  FocusScopeNode currentFocus = FocusScope.of(context);
 
-                    //TODO: loader end
-
-                    ).catchError((e) => dev.log(e));
-              },
-              child: Text(
-                'Save',
-                style: TextStyle(
-                  color: Colors.white,
+                  if (!currentFocus.hasPrimaryFocus) {
+                    currentFocus.unfocus();
+                  }
+                  if (_formKey.currentState!.validate() && imagePath != null) {
+                    uploadImage().then((asset) async {
+                      await maintainService(asset);
+                      widget.selectedService?.picture = asset;
+                      Navigator.pop(context);
+                    }).catchError((e) => dev.log(e.toString()));
+                  } else if (imagePath == null) {
+                    await maintainService(networkImgPath);
+                    widget.selectedService?.picture = networkImgPath;
+                    Navigator.pop(context);
+                  }
+                },
+                child: Text(
+                  'Save',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: Container(
-        child: Form(
-          child: ListView(
-            children: [
-              Container(
-                padding: EdgeInsets.all(20),
-                width: double.infinity,
-                color: secondaryColor.withOpacity(
-                  0.8,
-                ),
-                child: Text(
-                  'Saved to: /businessname',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
+          ],
+        ),
+        body: Container(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(20),
+                  width: double.infinity,
+                  color: secondaryColor.withOpacity(
+                    0.8,
+                  ),
+                  child: Text(
+                    'Saved to: /businessname',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
-              ),
-              imagePath != null
-                  ? Stack(
-                      children: [
-                        Center(
-                          child: Container(
-                            height: 240,
-                            padding: EdgeInsets.all(20),
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
+                networkImgPath != null && networkImgPath.isNotEmpty
+                    ? Stack(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(
+                              20.0,
                             ),
-                            child: Center(
-                              child: AspectRatio(
-                                aspectRatio: 1,
+                            height: 200,
+                            child: networkImgPath!.contains('svg')
+                                ? SvgPicture.network(
+                                    '${AppConstant.PICTURE_ASSET_PATH}/$networkImgPath')
+                                : Image.network(
+                                    '${AppConstant.PICTURE_ASSET_PATH}/$networkImgPath',
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
+                          Positioned(
+                            right: 10,
+                            bottom: 10,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                selectImage(context);
+
+                                setState(() {
+                                  networkImgPath = "";
+                                });
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(
+                                  Colors.red.shade100,
+                                ),
+                                shape: MaterialStateProperty.all(
+                                  CircleBorder(),
+                                ),
+                                padding: MaterialStateProperty.all(
+                                  EdgeInsets.all(16),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.edit,
+                                size: 20,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : imagePath != null
+                        ? Stack(
+                            children: [
+                              Center(
                                 child: Container(
+                                  height: 240,
+                                  padding: EdgeInsets.all(20),
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.8,
                                   decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      fit: BoxFit.fitHeight,
-                                      image: FileImage(
-                                        File(imagePath),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Center(
+                                    child: AspectRatio(
+                                      aspectRatio: 1,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            fit: BoxFit.fitHeight,
+                                            image: FileImage(
+                                              File(imagePath),
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
+                              Positioned(
+                                right: 10,
+                                bottom: 10,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    selectImage(context);
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(
+                                      Colors.red.shade100,
+                                    ),
+                                    shape: MaterialStateProperty.all(
+                                      CircleBorder(),
+                                    ),
+                                    padding: MaterialStateProperty.all(
+                                      EdgeInsets.all(16),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: 20,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Column(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    selectImage(context);
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(
+                                      Colors.red.shade100,
+                                    ),
+                                    shape: MaterialStateProperty.all(
+                                      CircleBorder(),
+                                    ),
+                                    padding: MaterialStateProperty.all(
+                                      EdgeInsets.all(18),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 32,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Add a profile photo',
+                                    strutStyle: StrutStyle(
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        Positioned(
-                          right: 10,
-                          bottom: 10,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              selectImage(context);
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
-                                Colors.red.shade100,
-                              ),
-                              shape: MaterialStateProperty.all(
-                                CircleBorder(),
-                              ),
-                              padding: MaterialStateProperty.all(
-                                EdgeInsets.all(16),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.edit,
-                              size: 20,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              selectImage(context);
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
-                                Colors.red.shade100,
-                              ),
-                              shape: MaterialStateProperty.all(
-                                CircleBorder(),
-                              ),
-                              padding: MaterialStateProperty.all(
-                                EdgeInsets.all(18),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.add_a_photo_outlined,
-                              size: 32,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Add a profile photo',
-                              strutStyle: StrutStyle(
-                                fontSize: 18.0,
-                              ),
-                            ),
-                          ),
-                        ],
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    controller: _name,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Service Name',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(),
                       ),
                     ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _name,
-                  decoration: InputDecoration(
-                    labelText: 'Service Name',
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    controller: _price,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a price';
+                      }
+                      return null;
+                    },
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Service Price',
+                      hintText: 'in \$',
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _price,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Service Price',
-                    border: OutlineInputBorder(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    controller: _duration,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter duration';
+                      }
+                      return null;
+                    },
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Service Duration',
+                      hintText: 'in minutes',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _duration,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Service Duration',
-                    hintText: 'in minutes',
-                    border: OutlineInputBorder(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    maxLines: 5,
+                    controller: _description,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Service Description',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  maxLines: 5,
-                  controller: _description,
-                  decoration: InputDecoration(
-                    labelText: 'Service Description',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              )
-            ],
+                )
+              ],
+            ),
           ),
         ),
       ),

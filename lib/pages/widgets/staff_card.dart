@@ -39,7 +39,7 @@ class StaffCard extends StatelessWidget {
             ),
           ),
           Text(
-            'Staff Name',
+            '$name',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -55,7 +55,7 @@ class StaffCard extends StatelessWidget {
           Divider(),
           TextButton(
             onPressed: () {
-              onTap;
+              onTap();
             },
             child: Text(
               'show more',

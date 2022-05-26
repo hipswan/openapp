@@ -1,96 +1,53 @@
 import 'dart:convert';
-
-import 'package:flutter/gestures.dart';
+import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:openapp/pages/widgets/ticket_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:openapp/constant.dart';
+import 'package:openapp/pages/login_page.dart';
+import 'package:openapp/pages/widgets/Form/appointment_form.dart';
+import 'package:openapp/pages/widgets/hex_color.dart';
+import 'package:openapp/utility/appurl.dart';
 
-import '../../constant.dart';
-import '../../model/service.dart';
-import '../../utility/Network/network_connectivity.dart';
-import '../../utility/appurl.dart';
-import '../business_home.dart';
-import 'Form/service_form.dart';
-import 'hex_color.dart';
+import '../model/service.dart';
+import '../model/business.dart';
+import '../model/staff.dart';
+import '../utility/Network/network_connectivity.dart';
 import 'package:http/http.dart' as http;
 
-class Services extends StatefulWidget {
-  const Services({Key? key}) : super(key: key);
+class ClientAppointment extends StatefulWidget {
+  final Business selectedBusiness;
+  final List<Staff> staffList;
+  final List<Service> serviceList;
+  const ClientAppointment(
+      {Key? key,
+      required this.selectedBusiness,
+      required this.staffList,
+      required this.serviceList})
+      : super(key: key);
 
   @override
-  State<Services> createState() => _ServicesState();
+  State<ClientAppointment> createState() => _ClientAppointmentState();
 }
 
-class _ServicesState extends State<Services> {
-  var _services = [
-    {
-      'name': 'Service 1',
-      'description': 'Description of Service 1',
-      'price': '\$10',
-      'image': 'assets/images/service1.png',
-    },
-    {
-      'name': 'Service 2',
-      'description': 'Description of Service 2',
-      'price': '\$20',
-      'image': 'assets/images/service2.png',
-    }
-  ];
-
-  Future<List<Service>> getBusinessServices() async {
-    await Future.delayed(Duration(milliseconds: 200));
-    if (currentBusiness!.services != null &&
-        currentBusiness!.services!.length > 0) {
-      return currentBusiness!.services!;
-    } else if (await CheckConnectivity.checkInternet()) {
+class _ClientAppointmentState extends State<ClientAppointment> {
+  Future<List<BusinessAppointment>> getClientAppointmentDetails() async {
+    if (await CheckConnectivity.checkInternet()) {
       try {
-        var url = AppConstant.getBusinessService(
-          currentBusiness?.bId,
-        );
+        var url =
+            'http://rxfarm91.cse.buffalo.edu:5001/api/appointments?uId=${currentClient!.id}';
         var response = await http.get(
-          Uri.parse('$url)'),
+          Uri.parse('$url'),
         );
 
         if (response.statusCode == 200) {
           //  json.decode(response.body);
           var parsedJson = json.decode(response.body);
-          currentBusiness!.services = parsedJson
-              .map<Service>((json) => Service.fromJson(json))
-              .toList();
           return parsedJson
-              .map<Service>((json) => Service.fromJson(json))
+              .map<BusinessAppointment>(
+                  (json) => BusinessAppointment.fromJson(json))
               .toList();
         } else {
           throw Exception('Failed to fetch business services');
-        }
-      } catch (e) {
-        throw Exception('Failed to connect to server');
-      }
-    } else {
-      throw Exception('Failed to connect to internet');
-    }
-  }
-
-  Future deleteBusinessService(serviceId) async {
-    if (await CheckConnectivity.checkInternet()) {
-      try {
-        var response = await http.delete(
-          Uri.parse('${AppConstant.getBusinessService(
-            currentBusiness?.bId,
-          )})'),
-        );
-
-        if (response.statusCode == 200) {
-          //  json.decode(response.body);
-          // var parsedJson = json.decode(response.body);
-          // return parsedJson
-          //     .map<Service>((json) => Service.fromJson(json))
-          //     .toList();
-          currentBusiness!.services = currentBusiness!.services
-              ?.where((service) => service.id != serviceId)
-              .toList();
-        } else {
-          throw Exception('Failed to fetch business hours');
         }
       } catch (e) {
         throw Exception('Failed to connect to server');
@@ -108,7 +65,10 @@ class _ServicesState extends State<Services> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ServiceForm(),
+              builder: (context) => AppointmentForm(
+                  selectedBusiness: widget.selectedBusiness,
+                  staffList: widget.staffList,
+                  serviceList: widget.serviceList),
             ),
           );
         },
@@ -127,19 +87,19 @@ class _ServicesState extends State<Services> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Business Services',
+              'Upcoming Appointments',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text('Select a service to view its details'),
+            Text('Select a appointment to view details'),
             SizedBox(
               height: 20,
             ),
             Expanded(
-              child: FutureBuilder<List<Service>>(
-                future: getBusinessServices(),
+              child: FutureBuilder<List<BusinessAppointment>>(
+                future: getClientAppointmentDetails(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
@@ -147,8 +107,9 @@ class _ServicesState extends State<Services> {
                     );
                   } else if (snapshot.connectionState == ConnectionState.done) {
                     if (snapshot.hasData) {
-                      var listOfServices = snapshot.data;
-                      return listOfServices!.isEmpty
+                      var listOfAppointment = snapshot.data;
+
+                      return listOfAppointment!.isEmpty
                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -164,38 +125,36 @@ class _ServicesState extends State<Services> {
                             )
                           : ListView(
                               children: [
-                                ...listOfServices.map<Widget>(
-                                  (service) => Padding(
+                                ...listOfAppointment.map<Widget>((appointment) {
+                                  var staff = widget.staffList[0];
+                                  var service = widget.serviceList[0];
+                                  return Padding(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 8.0,
                                     ),
-                                    child: TicketView(
-                                      key: Key(service.serviceName!),
-                                      serviceName:
-                                          service.serviceName.toString(),
-                                      serviceDescription: service.desc,
-                                      servicePrice: service.cost.toString(),
-                                      onEdit: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ServiceForm(
-                                                selectedService: service),
+                                    child: ListTile(
+                                      leading: SvgPicture.asset(
+                                        'assets/images/icons/appointment.svg',
+                                        width: 50,
+                                        height: 50,
+                                      ),
+                                      title: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                              '${appointment.firstName} ${appointment.lastName}'),
+                                          Text(
+                                            'Services: ${service.serviceName}',
                                           ),
-                                        );
-                                      },
-                                      onDelete: () async {
-                                        await deleteBusinessService(service.id);
-                                        setState(() {});
-                                        // setState(() {
-                                        //   snapshot.data!.remove(service);
-                                        // });
-                                      },
-
-                                      // image: 'assets/images/service1.png',
+                                          Text(
+                                            'Staff: ${staff.firstName}',
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                }),
                               ],
                             );
                     } else if (snapshot.hasError) {

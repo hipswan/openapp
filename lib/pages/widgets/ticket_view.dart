@@ -131,7 +131,7 @@ class TicketView extends StatelessWidget {
                                   ],
                                 ),
                                 Text(
-                                  serviceDescription,
+                                  'Description: $serviceDescription',
                                   style: TextStyle(
                                     color: textColor,
                                     fontSize: 18,
@@ -212,7 +212,7 @@ class TicketView extends StatelessWidget {
                     child: Container(
                       padding: EdgeInsets.all(10),
                       child: Text(
-                        servicePrice,
+                        '\$ $servicePrice',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,

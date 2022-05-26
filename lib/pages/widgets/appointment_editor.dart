@@ -769,7 +769,7 @@ class _AppointmentEditorState extends State<AppointmentEditor> {
                     }
                   },
                   child: Text(
-                    'Sign Up',
+                    'Edit',
                     style: TextStyle(
                       color: Colors.white,
                     ),

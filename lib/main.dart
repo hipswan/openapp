@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: SafeArea(
-        child: BusinessHome(),
+        child: TypeSelection(),
       ),
       routes: {
         '/shop': (context) => const ShopPage(),
@@ -89,7 +89,7 @@ class MyApp extends StatelessWidget {
         '/client_register': ((context) => ClientRegister()),
         '/business_register': (context) => const BusinessRegister(),
         '/login': (context) => LoginPage(),
-        '/business_home': (context) => BusinessHome(),
+        // '/business_home': (context) => BusinessHome(),
         '/business': (context) => const BusinessPage(),
       },
       debugShowCheckedModeBanner: false,

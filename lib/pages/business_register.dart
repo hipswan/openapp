@@ -160,9 +160,24 @@ class _BusinessRegisterState extends State<BusinessRegister> {
                                 );
 
                                 signupUser().then((value) {
-                                  Loader.hide();
-                                  Navigator.pushNamedAndRemoveUntil(context,
-                                      '/business_home', (route) => false);
+                                  // Navigator.pushNamedAndRemoveUntil(context,
+                                  //     '/business_home', (route) => false);
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                            title: Text('Business Created'),
+                                            content: Text(
+                                                'Connect with us today Thank you for helping us with the information.Your application is under review. We will send you an email with your login credentials once it is processed.'),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('OK'),
+                                                onPressed: () {
+                                                  Navigator.pushNamed(
+                                                      context, '/login');
+                                                },
+                                              )
+                                            ],
+                                          ));
                                 }).catchError((e) {
                                   Loader.hide();
                                   dev.log(

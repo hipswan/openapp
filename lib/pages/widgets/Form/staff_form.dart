@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:openapp/constant.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,11 +28,13 @@ class StaffForm extends StatefulWidget {
 
 class _StaffFormState extends State<StaffForm> {
   var imagePath;
+  var networkImgPath;
   TextEditingController _name = TextEditingController();
   TextEditingController _igHandle = TextEditingController();
   TextEditingController _fbHandle = TextEditingController();
   TextEditingController _tiktokHandle = TextEditingController();
   TextEditingController _description = TextEditingController();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   selectImage(parentContext) {
     return showDialog(
@@ -103,7 +106,7 @@ class _StaffFormState extends State<StaffForm> {
         var headers = {'Authorization': 'Bearer ${currentBusiness?.token}'};
 
         var request = http.MultipartRequest(
-            'POST', Uri.parse('$AppConstant.PICTURE_UPLOAD'));
+            'POST', Uri.parse('${AppConstant.PICTURE_UPLOAD}'));
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
@@ -132,7 +135,7 @@ class _StaffFormState extends State<StaffForm> {
     if (await CheckConnectivity.checkInternet()) {
       try {
         var body = {
-          "bId": currentBusiness?.bId,
+          "bId": currentBusiness?.bId.toString(),
           "firstName": _name.text,
           "igProfile": _igHandle.text,
           "fbProfile": _fbHandle.text,
@@ -140,15 +143,20 @@ class _StaffFormState extends State<StaffForm> {
           "desc": _description.text,
           "profilePicture": asset,
         };
+
         var response;
         if (widget.selectedStaff == null && asset != null) {
+          var url = AppConstant.addBusinessStaff(currentBusiness?.bId);
           response = await http.post(
-            Uri.parse('$AppConstant.addBusinessStaff(${currentBusiness?.bId})'),
+            Uri.parse('$url'),
             body: body,
+            headers: {'Authorization': 'Bearer ${currentBusiness?.token}'},
           );
         } else {
+          var url = AppConstant.addBusinessStaff(currentBusiness?.bId);
+
           response = await http.patch(
-            Uri.parse('$AppConstant.addBusinessStaff(${currentBusiness?.bId})'),
+            Uri.parse('$url'),
             body: body,
           );
         }
@@ -173,7 +181,7 @@ class _StaffFormState extends State<StaffForm> {
       _igHandle.text = widget.selectedStaff?.igProfile ?? '';
       _fbHandle.text = widget.selectedStaff?.fbProfile ?? '';
       _tiktokHandle.text = widget.selectedStaff?.tiktokProfile ?? '';
-      imagePath = widget.selectedStaff?.profilePicture ?? '';
+      networkImgPath = widget.selectedStaff?.profilePicture ?? '';
       _description.text = widget.selectedStaff?.desc ?? '';
     } else {
       _name.text = '';
@@ -226,14 +234,17 @@ class _StaffFormState extends State<StaffForm> {
                 ),
                 onPressed: () async {
                   //TODO: loader start
-
-                  uploadImage().then((asset) async {
-                    await maintainStaff(asset);
+                  if (_formKey.currentState!.validate() && imagePath != null) {
+                    uploadImage().then((asset) async {
+                      await maintainStaff(asset);
+                      widget.selectedStaff?.profilePicture = asset;
+                      Navigator.pop(context);
+                    }).catchError((e) => dev.log(e));
+                  } else if (networkImgPath != null && imagePath == null) {
+                    await maintainStaff(networkImgPath);
+                    widget.selectedStaff?.profilePicture = networkImgPath;
+                    Navigator.pop(context);
                   }
-
-                      //TODO: loader end
-
-                      ).catchError((e) => dev.log(e));
                 },
                 child: Text(
                   'Save',
@@ -247,6 +258,7 @@ class _StaffFormState extends State<StaffForm> {
         ),
         body: Container(
           child: Form(
+            key: _formKey,
             child: ListView(
               children: [
                 Container(
@@ -263,33 +275,22 @@ class _StaffFormState extends State<StaffForm> {
                     ),
                   ),
                 ),
-                imagePath != null
+                networkImgPath != null && networkImgPath.isNotEmpty
                     ? Stack(
                         children: [
-                          Center(
-                            child: Container(
-                              height: 240,
-                              padding: EdgeInsets.all(20),
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Center(
-                                child: AspectRatio(
-                                  aspectRatio: 1,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        fit: BoxFit.fitHeight,
-                                        image: FileImage(
-                                          File(imagePath),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(
+                              20.0,
                             ),
+                            height: 200,
+                            child: networkImgPath!.contains('svg')
+                                ? SvgPicture.network(
+                                    '${AppConstant.PICTURE_ASSET_PATH}/$networkImgPath')
+                                : Image.network(
+                                    '${AppConstant.PICTURE_ASSET_PATH}/$networkImgPath',
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                           Positioned(
                             right: 10,
@@ -297,6 +298,10 @@ class _StaffFormState extends State<StaffForm> {
                             child: ElevatedButton(
                               onPressed: () {
                                 selectImage(context);
+
+                                setState(() {
+                                  networkImgPath = "";
+                                });
                               },
                               style: ButtonStyle(
                                 backgroundColor: MaterialStateProperty.all(
@@ -318,47 +323,109 @@ class _StaffFormState extends State<StaffForm> {
                           ),
                         ],
                       )
-                    : Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Column(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                selectImage(context);
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
-                                  Colors.red.shade100,
-                                ),
-                                shape: MaterialStateProperty.all(
-                                  CircleBorder(),
-                                ),
-                                padding: MaterialStateProperty.all(
-                                  EdgeInsets.all(18),
+                    : imagePath != null
+                        ? Stack(
+                            children: [
+                              Center(
+                                child: Container(
+                                  height: 240,
+                                  padding: EdgeInsets.all(20),
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.8,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Center(
+                                    child: AspectRatio(
+                                      aspectRatio: 1,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            fit: BoxFit.fitHeight,
+                                            image: FileImage(
+                                              File(imagePath),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: Icon(
-                                Icons.add_a_photo_outlined,
-                                size: 32,
-                                color: Colors.black,
+                              Positioned(
+                                right: 10,
+                                bottom: 10,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    selectImage(context);
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(
+                                      Colors.red.shade100,
+                                    ),
+                                    shape: MaterialStateProperty.all(
+                                      CircleBorder(),
+                                    ),
+                                    padding: MaterialStateProperty.all(
+                                      EdgeInsets.all(16),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: 20,
+                                    color: Colors.black,
+                                  ),
+                                ),
                               ),
+                            ],
+                          )
+                        : Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Column(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    selectImage(context);
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(
+                                      Colors.red.shade100,
+                                    ),
+                                    shape: MaterialStateProperty.all(
+                                      CircleBorder(),
+                                    ),
+                                    padding: MaterialStateProperty.all(
+                                      EdgeInsets.all(18),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 32,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Add a profile photo',
+                                    strutStyle: StrutStyle(
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Add a profile photo',
-                                strutStyle: StrutStyle(
-                                  fontSize: 18.0,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
                     controller: _name,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
                     decoration: InputDecoration(
                       labelText: 'Full Name',
                       border: OutlineInputBorder(
@@ -374,6 +441,12 @@ class _StaffFormState extends State<StaffForm> {
                     asset: 'assets/images/connects/ig_logo.png',
                     label: 'Instagram',
                     controller: _igHandle,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a Instagram handle';
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 Padding(
@@ -382,6 +455,12 @@ class _StaffFormState extends State<StaffForm> {
                     asset: 'assets/images/connects/tiktok_logo.png',
                     label: 'TikTok',
                     controller: _tiktokHandle,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a TikTok handle';
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 Padding(
@@ -390,6 +469,12 @@ class _StaffFormState extends State<StaffForm> {
                     asset: 'assets/images/connects/fb_logo.png',
                     label: 'Facebook',
                     controller: _fbHandle,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a Facebook handle';
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 Padding(
@@ -397,6 +482,12 @@ class _StaffFormState extends State<StaffForm> {
                   child: TextFormField(
                     maxLines: 5,
                     controller: _description,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
                     decoration: InputDecoration(
                       labelText: 'Service Description',
                       border: OutlineInputBorder(),
@@ -416,11 +507,13 @@ class ConnectTile extends StatelessWidget {
   final String asset;
   final String label;
   final TextEditingController controller;
+  final validator;
   ConnectTile({
     Key? key,
     required this.asset,
     required this.label,
     required this.controller,
+    required this.validator,
   }) : super(key: key);
 
   @override
@@ -440,12 +533,7 @@ class ConnectTile extends StatelessWidget {
         Expanded(
           child: TextFormField(
             controller: controller,
-            validator: (value) {
-              if (value!.isEmpty) {
-                return 'Please enter a $label handle';
-              }
-              return null;
-            },
+            validator: validator,
             decoration: InputDecoration(
               labelText: label,
               border: OutlineInputBorder(),

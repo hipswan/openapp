@@ -23,7 +23,10 @@ import 'package:http/http.dart' as http;
 Business? currentBusiness;
 
 class BusinessHome extends StatefulWidget {
-  const BusinessHome({Key? key}) : super(key: key);
+  final emailId;
+  final password;
+  const BusinessHome({Key? key, required this.emailId, required this.password})
+      : super(key: key);
 
   @override
   State<BusinessHome> createState() => _BusinessHomeState();
@@ -69,7 +72,7 @@ class _BusinessHomeState extends State<BusinessHome> {
   @override
   void initState() {
     calendarController.view = _view;
-    getBusinessDetails();
+    // getBusinessDetails();
     _appointments2 = _getAppointmentDetails();
     // _events = _DataSource(_appointments);
     _selectedAppointment = null;
@@ -83,7 +86,7 @@ class _BusinessHomeState extends State<BusinessHome> {
       try {
         final response = await http.post(
           Uri.parse('${AppConstant.SIGNIN}'),
-          body: {"emailId": "asmtsingh4@gmail.com", "password": "x6kgobej"},
+          body: {"emailId": widget.emailId, "password": widget.password},
         );
         if (response.statusCode == 201) {
           return json.decode(response.body);
@@ -101,8 +104,8 @@ class _BusinessHomeState extends State<BusinessHome> {
   fetchBusinessAppointments(id) async {
     if (await CheckConnectivity.checkInternet()) {
       try {
-        final response = await http
-            .get(Uri.parse('${AppConstant.getBusinessAppointmentByID('4')}'));
+        var url = AppConstant.getBusinessAppointmentByID(currentBusiness?.bId);
+        final response = await http.get(Uri.parse('$url'));
         if (response.statusCode == 200) {
           return json.decode(response.body);
         } else {

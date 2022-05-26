@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -7,8 +8,11 @@ import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:http/http.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/pages/business_home.dart';
 import 'package:openapp/pages/widgets/openapp_logo.dart';
 
+import '../model/business.dart';
+import '../model/customer.dart';
 import '../model/user_controller.dart';
 import '../utility/Network/network_connectivity.dart';
 import 'dart:developer' as dev;
@@ -16,12 +20,15 @@ import 'package:http/http.dart' as http;
 
 import '../utility/appurl.dart';
 
+// Business? currentBusiness;
+Customer? currentClient;
+
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
   final _formKey = GlobalKey<FormState>();
 
-  final emailId = TextEditingController(text: "asmtsingh4@gmail.com");
-  final password = TextEditingController(text: "x6kgobej");
+  final emailId = TextEditingController(text: "");
+  final password = TextEditingController(text: "");
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -94,9 +101,11 @@ class LoginPage extends StatelessWidget {
           Uri.parse('${AppConstant.SIGNIN}'),
           body: {"emailId": emailId.text, "password": password.text},
         );
-        if (response.statusCode == 200) {
+        if (response.statusCode == 201) {
+          final parsedJson = json.decode(response.body);
+          return parsedJson;
         } else {
-          throw Exception('Failed to create business');
+          throw Exception('Failed to loging User');
         }
       } catch (e) {
         throw Exception('Failed to connect to server');
@@ -138,7 +147,22 @@ class LoginPage extends StatelessWidget {
                   //TODO: Loader shown
                   siginUser().then((value) {
                     Loader.hide();
-                    Navigator.pushNamed(context, '/home');
+                    if (value.containsKey('bName')) {
+                      // currentBusiness = Business.fromJson(value);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BusinessHome(
+                            emailId: emailId.text,
+                            password: password.text,
+                          ),
+                        ),
+                      );
+                    } else {
+                      currentClient = Customer.fromJson(value);
+
+                      Navigator.pushNamed(context, '/home');
+                    }
                   }).catchError((error) {
                     Loader.hide();
                     dev.log(error.toString());

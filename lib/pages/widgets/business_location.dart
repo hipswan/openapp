@@ -4,6 +4,13 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/pages/business_home.dart';
+
+import '../../utility/Network/network_connectivity.dart';
+import 'package:http/http.dart' as http;
+import 'dart:developer' as dev;
+
+import '../../utility/appurl.dart';
 
 class BusinessLocation extends StatefulWidget {
   const BusinessLocation({Key? key}) : super(key: key);
@@ -14,16 +21,44 @@ class BusinessLocation extends StatefulWidget {
 
 class _BusinessLocationState extends State<BusinessLocation> {
   bool _islocation = false;
-  bool _isloading = false;
+  bool _isloading = true;
   String _location = '';
   Position? _position;
   @override
   void initState() {
     // TODO: implement initState
+    if (currentBusiness != null &&
+        currentBusiness?.lat != null &&
+        currentBusiness!.lat!.isNotEmpty &&
+        currentBusiness?.long != null &&
+        currentBusiness!.long!.isNotEmpty) {
+      _position = Position(
+        latitude: double.parse(currentBusiness?.lat ?? ''),
+        longitude: double.parse(currentBusiness?.long ?? ''),
+        accuracy: 0.0,
+        altitude: 0.0,
+        speed: 0.0,
+        timestamp: DateTime.now(),
+        heading: 0.0,
+        speedAccuracy: 0.0,
+      );
+      _getAddress(_position).then((value) {
+        _location = value;
+
+        setState(() {
+          _islocation = true;
+          _isloading = false;
+        });
+      });
+    } else {
+      setState(() {
+        _isloading = false;
+      });
+    }
     super.initState();
   }
 
-  _getAddress(position) async {
+  Future<String> _getAddress(position) async {
     try {
       // Places are retrieved using the coordinates
       List<Placemark> p = await placemarkFromCoordinates(
@@ -36,7 +71,7 @@ class _BusinessLocationState extends State<BusinessLocation> {
       return "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
     } catch (e) {
       print(e);
-      return null;
+      return "{e.toString()}";
     }
   }
 
@@ -80,6 +115,34 @@ class _BusinessLocationState extends State<BusinessLocation> {
     } catch (e) {
       print(e);
       return null;
+    }
+  }
+
+  Future updateBusinessLocation() async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        var body = {
+          "bId": currentBusiness?.bId.toString(),
+          "lat": _position?.latitude.toString(),
+          "long": _position?.longitude.toString(),
+        };
+        var url = AppConstant.getBusiness(currentBusiness?.bId);
+        var response = await http.patch(
+          Uri.parse('$url'),
+          body: body,
+        );
+
+        if (response.statusCode == 200) {
+          //  json.decode(response.body);
+          dev.log('added/updated business location');
+        } else {
+          throw Exception('Failed to update business location');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
     }
   }
 
@@ -128,14 +191,18 @@ class _BusinessLocationState extends State<BusinessLocation> {
                           _isloading = true;
                         });
                         var position = await _getCurrentLocation();
+
                         if (position is Position) {
                           var location = await _getAddress(position);
-                          setState(() {
-                            _location = location;
-                            _position = position;
-                            _islocation = true;
-                            _isloading = false;
-                          });
+                          _location = location;
+                          _position = position;
+                          _islocation = true;
+                          _isloading = false;
+                          await updateBusinessLocation();
+                          currentBusiness?.lat = _position?.latitude.toString();
+                          currentBusiness?.long =
+                              _position?.longitude.toString();
+                          setState(() {});
                         } else {
                           setState(() {
                             _isloading = false;
@@ -198,8 +265,8 @@ class MapBox extends StatelessWidget {
                   Marker(
                     markerId: MarkerId('1'),
                     infoWindow: InfoWindow(
-                      title: '/business name',
-                      snippet: '/description',
+                      title: '${currentBusiness?.bName}',
+                      snippet: '${currentBusiness?.description}',
                     ),
                     position: LatLng(
                       position.latitude,

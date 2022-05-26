@@ -38,7 +38,8 @@ class _BusinessProfileState extends State<BusinessProfile> {
                 ),
               ),
               margin: EdgeInsets.all(10),
-              child: currentBusiness?.image1 != null
+              child: currentBusiness?.image1 != null &&
+                      currentBusiness?.image1 != ''
                   ? CachedNetworkImage(
                       imageUrl:
                           '${AppConstant.PICTURE_ASSET_PATH}/${currentBusiness?.image1}',
@@ -46,7 +47,10 @@ class _BusinessProfileState extends State<BusinessProfile> {
                           CircularProgressIndicator(),
                       fit: BoxFit.cover,
                     )
-                  : FlutterLogo(),
+                  : Container(
+                      color: secondaryColor,
+                      child: FlutterLogo(),
+                    ),
             ),
             Positioned(
               right: 0,
@@ -169,7 +173,7 @@ class _BusinessProfileState extends State<BusinessProfile> {
                     10.0,
                   ),
                   child: TabBar(
-                    isScrollable: true,
+                    isScrollable: false,
                     indicatorColor: Theme.of(context).secondaryHeaderColor,
                     indicatorSize: TabBarIndicatorSize.label,
                     indicatorWeight: 5.0,
@@ -202,11 +206,12 @@ class _BusinessProfileState extends State<BusinessProfile> {
               ),
               Expanded(
                 child: TabBarView(
+                  physics: NeverScrollableScrollPhysics(),
                   children: [
-                    InfoWall(),
-                    Services(),
-                    Staffs(),
-                    BusinessLocation(),
+                    Builder(builder: (context) => InfoWall()),
+                    Builder(builder: (context) => Services()),
+                    Builder(builder: (context) => Staffs()),
+                    Builder(builder: (context) => BusinessLocation()),
                   ],
                 ),
               )

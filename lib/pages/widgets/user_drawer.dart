@@ -27,7 +27,8 @@ class UserDrawer extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: currentBusiness?.image1 != null
+                    child: currentBusiness?.image1 != null &&
+                            currentBusiness?.image1 != ''
                         ? CachedNetworkImage(
                             imageUrl:
                                 '${AppConstant.PICTURE_ASSET_PATH}/${currentBusiness?.image1}',
@@ -36,7 +37,15 @@ class UserDrawer extends StatelessWidget {
                             ),
                             fit: BoxFit.cover,
                           )
-                        : FlutterLogo(),
+                        : Container(
+                            color: Colors.black12,
+                            child: Image.asset(
+                              'assets/images/icons/calendar_circle.png',
+                              color: Colors.black54,
+                              colorBlendMode: BlendMode.darken,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                   ),
                   Padding(
                     padding: EdgeInsets.only(

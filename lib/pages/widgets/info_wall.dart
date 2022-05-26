@@ -29,7 +29,7 @@ class InfoWall extends StatefulWidget {
 class _InfoWallState extends State<InfoWall> {
   var isEditing = false;
 
-  var _daysOperating = {
+  Map<String, dynamic> _daysOperating = {
     'Mon': {'active': false, 'from': '00:00', 'to': '00:00'},
     'Tue': {'active': false, 'from': '00:00', 'to': '00:00'},
     'Wed': {'active': false, 'from': '00:00', 'to': '00:00'},
@@ -38,14 +38,15 @@ class _InfoWallState extends State<InfoWall> {
     'Sat': {'active': false, 'from': '00:00', 'to': '00:00'},
   };
 
+  var _copyDaysOfOperation;
+
   Future getBusinessHours() async {
     if (await CheckConnectivity.checkInternet()) {
       try {
-        var response = await http.get(
-          Uri.parse('${AppConstant.getBusinesssHourById(
-            currentBusiness?.bId,
-          )})'),
-        );
+        var url = AppConstant.getBusinesssHourById(currentBusiness?.bId);
+        var response = await http.get(Uri.parse('$url'), headers: {
+          'Authorization': 'Bearer ${currentBusiness?.token}',
+        });
 
         if (response.statusCode == 200) {
           //  json.decode(response.body);
@@ -108,21 +109,28 @@ class _InfoWallState extends State<InfoWall> {
       try {
         var body = _daysOperating.entries.map((element) {
           return {
-            "bId": currentBusiness?.bId,
+            "bId": currentBusiness?.bId.toString(),
             "day": getWeekInNumber(element.key),
-            "isWorking": element.value['active'],
+            "isWorking": element.value['active'].toString(),
             "startTime": element.value['from'],
             "endTime": element.value['to'],
           };
         }).toList();
-        var response = await http.patch(
-          Uri.parse('${AppConstant.addBusinessStaff(currentBusiness?.bId)}'),
-          body: body,
+        var headers = {
+          'Authorization': 'Bearer ${currentBusiness?.token}',
+          // 'Content-Type': 'application/json'
+        };
+        var request = http.Request(
+          'PATCH',
+          Uri.parse('${AppConstant.BUSINESS_HOURS}'),
         );
+        request.body = json.encode(body);
+        request.headers.addAll(headers);
+
+        http.StreamedResponse response = await request.send();
 
         if (response.statusCode == 200) {
-          //  json.decode(response.body);
-          dev.log('added/updated business hours');
+          dev.log(await response.stream.bytesToString());
         } else {
           throw Exception('Failed to update business hours');
         }
@@ -151,13 +159,26 @@ class _InfoWallState extends State<InfoWall> {
                 isEditing = false;
               });
             }).catchError((error) {
-              dev.log(error);
+              dev.log(error.toString());
+              dev.log('Error While Updating Business Hours');
+              _daysOperating = _copyDaysOfOperation;
+              setState(() {
+                isEditing = false;
+              });
             });
+            FocusScopeNode currentFocus = FocusScope.of(context);
+
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
             //TODO: loader end
+          } else {
+            setState(() {
+              _copyDaysOfOperation = json.decode(json.encode(_daysOperating));
+
+              isEditing = true;
+            });
           }
-          setState(() {
-            isEditing = !isEditing;
-          });
         },
         child: isEditing
             ? Icon(
@@ -188,8 +209,7 @@ class _InfoWallState extends State<InfoWall> {
               return Container(
                 height: maxHeight,
                 width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: ListView(
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),

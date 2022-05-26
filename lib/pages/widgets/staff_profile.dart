@@ -55,7 +55,7 @@ class _StaffProfileState extends State<StaffProfile> {
           child: Column(
             children: [
               Text(
-                '$description',
+                '${widget.staff.desc}',
                 textAlign: TextAlign.justify,
                 style: TextStyle(
                   fontSize: 14,
@@ -89,7 +89,7 @@ class _StaffProfileState extends State<StaffProfile> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton.icon(
-                label: Text('Delete'),
+                label: Text(''),
                 icon: Icon(
                   Icons.delete_forever_outlined,
                 ),
@@ -109,9 +109,9 @@ class _StaffProfileState extends State<StaffProfile> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton.icon(
-                label: Text('Delete'),
+                label: Text(''),
                 icon: Icon(
-                  Icons.delete_forever_outlined,
+                  Icons.edit_outlined,
                 ),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all(secondaryColor),
@@ -199,7 +199,7 @@ class _StaffProfileState extends State<StaffProfile> {
                           tag: widget.key.hashCode,
                           child: CircleAvatar(
                             backgroundImage: AssetImage(
-                              widget.staff.profilePicture!,
+                              '${widget.staff.profilePicture}',
                             ),
                           ),
                         ),

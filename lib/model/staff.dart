@@ -6,6 +6,7 @@ import 'dart:convert';
 
 class Staff {
   Staff({
+    this.id,
     this.bId,
     this.firstName,
     this.igProfile,
@@ -14,6 +15,7 @@ class Staff {
     this.desc,
     this.profilePicture,
   });
+  int? id;
 
   int? bId;
   String? firstName;
@@ -25,6 +27,7 @@ class Staff {
 
   Staff copyWith({
     int? bId,
+    int? id,
     String? firstName,
     String? igProfile,
     String? fbProfile,
@@ -34,6 +37,7 @@ class Staff {
   }) =>
       Staff(
         bId: bId ?? this.bId,
+        id: id ?? this.id,
         firstName: firstName ?? this.firstName,
         igProfile: igProfile ?? this.igProfile,
         fbProfile: fbProfile ?? this.fbProfile,
@@ -48,6 +52,7 @@ class Staff {
 
   factory Staff.fromJson(Map<String, dynamic> json) => Staff(
         bId: json["bId"],
+        id: json["id"],
         firstName: json["firstName"],
         igProfile: json["igProfile"],
         fbProfile: json["fbProfile"],
@@ -58,6 +63,7 @@ class Staff {
 
   Map<String, dynamic> toJson() => {
         "bId": bId,
+        "id": id,
         "firstName": firstName,
         "igProfile": igProfile,
         "fbProfile": fbProfile,

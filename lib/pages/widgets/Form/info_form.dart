@@ -29,6 +29,8 @@ class _InfoFormState extends State<InfoForm> {
   var _currentImgIndex = 0;
   TextEditingController _description = TextEditingController();
   final List<Widget> imageSliders = [];
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  var _formKey = GlobalKey<FormState>();
   @override
   void initState() {
     // TODO: implement initState
@@ -78,7 +80,7 @@ class _InfoFormState extends State<InfoForm> {
         );
       },
     );
-
+    _description.text = currentBusiness?.description ?? '';
     super.initState();
   }
 
@@ -152,7 +154,7 @@ class _InfoFormState extends State<InfoForm> {
         var headers = {'Authorization': 'Bearer ${currentBusiness?.token}'};
 
         var request = http.MultipartRequest(
-            'POST', Uri.parse('$AppConstant.PICTURE_UPLOAD'));
+            'POST', Uri.parse('${AppConstant.PICTURE_UPLOAD}'));
         request.files.add(
           await http.MultipartFile.fromPath(
             'file',
@@ -163,7 +165,7 @@ class _InfoFormState extends State<InfoForm> {
 
         http.StreamedResponse response = await request.send();
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 201) {
           var parsedBody = json.decode(await response.stream.bytesToString());
           return parsedBody['filename'];
         } else {
@@ -181,11 +183,11 @@ class _InfoFormState extends State<InfoForm> {
     if (await CheckConnectivity.checkInternet()) {
       try {
         var body = {
-          "bId": currentBusiness?.bId,
+          "bId": currentBusiness?.bId.toString(),
           "description": _description.text,
           "image1": imgList.elementAt(0),
-          "image2": imgList.elementAt(1) ?? "",
-          "image3": imgList.elementAt(2) ?? "",
+          "image2": imgList.elementAt(1),
+          "image3": imgList.elementAt(2),
         };
         var response = await http.patch(
           Uri.parse('${AppConstant.getBusiness(currentBusiness?.bId)}'),
@@ -214,6 +216,22 @@ class _InfoFormState extends State<InfoForm> {
         appBar: AppBar(
           title: Text('Maintain Info'),
           centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () async {
+              FocusScopeNode currentFocus = FocusScope.of(context);
+
+              if (!currentFocus.hasPrimaryFocus) {
+                currentFocus.unfocus();
+              }
+              await Future.delayed(
+                Duration(
+                  milliseconds: 200,
+                ),
+              );
+              Navigator.pop(context);
+            },
+          ),
           actions: [
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -228,15 +246,51 @@ class _InfoFormState extends State<InfoForm> {
                 ),
                 onPressed: () async {
                   //TODO: loader start
-                  if (imgList.length < 3) {
+
+                  FocusScopeNode currentFocus = FocusScope.of(context);
+
+                  if (!currentFocus.hasPrimaryFocus) {
+                    currentFocus.unfocus();
+                  }
+                  var imgExist = imgList.where((img) => img.isNotEmpty).length;
+                  if (imgExist < 3 && _formKey.currentState!.validate()) {
                     uploadImage().then((asset) async {
-                      imgList.add(asset);
+                      // imgList.add(asset);
                       await maintainInfo();
-                    }).catchError((e) => dev.log(e.toString()));
-                  } else {
-                    dev.log(
-                      'Image add limit reached',
+                      // currentBusiness?.image2 = asset;
+                      if (imgList.length == 0) {
+                        currentBusiness?.image1 = asset;
+                      } else if (imgList.length == 1) {
+                        currentBusiness?.image2 = asset;
+                      } else {
+                        currentBusiness?.image3 = asset;
+                      }
+                      currentBusiness?.description = _description.text;
+                      Navigator.pop(context);
+                    }).catchError((e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            e.toString().substring(0, 10),
+                          ),
+                        ),
+                      );
+                      dev.log(e.toString());
+                    });
+                  } else if (imagePath != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          imgList.where((img) => img.isNotEmpty).length < 3
+                              ? 'Validate Form error'
+                              : 'Image add limit reached',
+                        ),
+                      ),
                     );
+                  } else {
+                    await maintainInfo();
+                    currentBusiness?.description = _description.text;
+                    Navigator.pop(context);
                   }
                   //TODO: Loader stop
                 },
@@ -252,6 +306,7 @@ class _InfoFormState extends State<InfoForm> {
         ),
         body: Container(
           child: Form(
+            key: _formKey,
             child: ListView(
               children: [
                 Container(
@@ -269,45 +324,49 @@ class _InfoFormState extends State<InfoForm> {
                   ),
                 ),
                 // imageSliders.isNotEmpty?
-                Column(
-                  children: [
-                    CarouselSlider(
-                      options: CarouselOptions(
-                        aspectRatio: 2.0,
-                        enlargeCenterPage: true,
-                        scrollDirection: Axis.horizontal,
-                        autoPlay: true,
-                        onPageChanged: (index, reason) {
-                          setState(() {
-                            _currentImgIndex = index;
-                            // dev.log("${_currentImgIndex}");
-                          });
-                        },
-                      ),
-                      items: imageSliders,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: imgList.where((image) => image.isNotEmpty).map(
-                        (image) {
-                          //these two lines
-                          int index = imgList.indexOf(image); //are changed
-                          return Container(
-                            width: 8.0,
-                            height: 8.0,
-                            margin: EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 2.0),
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _currentImgIndex == index
-                                    ? Color.fromRGBO(0, 0, 0, 0.9)
-                                    : Color.fromRGBO(0, 0, 0, 0.4)),
-                          );
-                        },
-                      ).toList(),
-                    ),
-                  ],
-                ),
+                imageSliders.isNotEmpty
+                    ? Column(
+                        children: [
+                          CarouselSlider(
+                            options: CarouselOptions(
+                              aspectRatio: 2.0,
+                              enlargeCenterPage: true,
+                              scrollDirection: Axis.horizontal,
+                              autoPlay: true,
+                              onPageChanged: (index, reason) {
+                                setState(() {
+                                  _currentImgIndex = index;
+                                  // dev.log("${_currentImgIndex}");
+                                });
+                              },
+                            ),
+                            items: imageSliders,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children:
+                                imgList.where((image) => image.isNotEmpty).map(
+                              (image) {
+                                //these two lines
+                                int index =
+                                    imgList.indexOf(image); //are changed
+                                return Container(
+                                  width: 8.0,
+                                  height: 8.0,
+                                  margin: EdgeInsets.symmetric(
+                                      vertical: 10.0, horizontal: 2.0),
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _currentImgIndex == index
+                                          ? Color.fromRGBO(0, 0, 0, 0.9)
+                                          : Color.fromRGBO(0, 0, 0, 0.4)),
+                                );
+                              },
+                            ).toList(),
+                          ),
+                        ],
+                      )
+                    : Container(),
                 imagePath != null
                     ? Stack(
                         children: [
@@ -405,6 +464,12 @@ class _InfoFormState extends State<InfoForm> {
                   child: TextFormField(
                     maxLines: 5,
                     controller: _description,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
                     decoration: InputDecoration(
                       labelText: 'Service Description',
                       border: OutlineInputBorder(),
