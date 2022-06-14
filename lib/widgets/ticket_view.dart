@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:openapp/pages/widgets/Form/service_form.dart';
-import '../service_page.dart';
+import 'package:openapp/widgets/Form/service_form.dart';
 import 'hex_color.dart';
 
 class TicketView extends StatelessWidget {

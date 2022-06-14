@@ -9,17 +9,17 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:openapp/pages/business_details.dart';
-import 'package:openapp/pages/widgets/filter_search.dart';
-import 'package:openapp/pages/widgets/more_filter.dart';
+import '../business/business_details.dart';
+import 'package:openapp/widgets/filter_search.dart';
+import 'package:openapp/widgets/more_filter.dart';
 import 'package:openapp/utility/appurl.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'dart:developer' as dev;
-import '../constant.dart';
+import '../../constant.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../model/business.dart';
-import '../utility/Network/network_connectivity.dart';
+import '../../model/business.dart';
+import '../../utility/Network/network_connectivity.dart';
 import 'package:http/http.dart' as http;
 
 class ClientMap extends StatefulWidget {

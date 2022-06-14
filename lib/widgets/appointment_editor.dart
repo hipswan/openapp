@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:openapp/constant.dart';
-import 'package:openapp/pages/widgets/staff_card.dart';
+import 'package:openapp/widgets/staff_card.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:intl/intl.dart' show DateFormat;
 

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/login_page.dart';
-import 'package:openapp/pages/widgets/category_tile.dart';
-import 'package:openapp/pages/widgets/section.dart';
-import 'package:openapp/pages/widgets/shop_tile.dart';
+import 'package:openapp/widgets/category_tile.dart';
+import 'package:openapp/widgets/section.dart';
+import 'package:openapp/widgets/shop_tile.dart';
 
 final shopDetails = [
   {

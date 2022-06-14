@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:openapp/pages/widgets/staff.dart';
-import 'package:openapp/pages/widgets/staff_profile.dart';
+import 'package:openapp/widgets/staff.dart';
+import 'package:openapp/widgets/staff_profile.dart';
 
 import 'hex_color.dart';
 

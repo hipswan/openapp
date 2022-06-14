@@ -8,8 +8,8 @@ import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:http/http.dart';
 import 'package:openapp/constant.dart';
-import 'package:openapp/pages/business_home.dart';
-import 'package:openapp/pages/widgets/openapp_logo.dart';
+import 'package:openapp/pages/business/business_home.dart';
+import 'package:openapp/widgets/openapp_logo.dart';
 
 import '../model/business.dart';
 import '../model/customer.dart';

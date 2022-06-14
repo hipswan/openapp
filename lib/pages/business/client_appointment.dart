@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/login_page.dart';
-import 'package:openapp/pages/widgets/Form/appointment_form.dart';
-import 'package:openapp/pages/widgets/hex_color.dart';
+import 'package:openapp/widgets/Form/appointment_form.dart';
+import 'package:openapp/widgets/hex_color.dart';
 import 'package:openapp/utility/appurl.dart';
 
-import '../model/service.dart';
-import '../model/business.dart';
-import '../model/staff.dart';
-import '../utility/Network/network_connectivity.dart';
+import '../../model/service.dart';
+import '../../model/business.dart';
+import '../../model/staff.dart';
+import '../../utility/Network/network_connectivity.dart';
 import 'package:http/http.dart' as http;
 
 class ClientAppointment extends StatefulWidget {

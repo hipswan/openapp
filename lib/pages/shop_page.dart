@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../constant.dart';
-import 'widgets/shop_offer_tile.dart';
+import '../widgets/shop_offer_tile.dart';
 
 class ShopPage extends StatelessWidget {
   final shopName;

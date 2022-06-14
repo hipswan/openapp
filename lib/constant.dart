@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'pages/widgets/hex_color.dart';
+import './widgets/hex_color.dart';
 
 Color backIconColor = Colors.black;
 

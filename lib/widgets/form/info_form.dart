@@ -8,9 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:openapp/constant.dart';
 
 import '../../../utility/Network/network_connectivity.dart';
-import '../../../utility/appurl.dart';
-import '../../business_home.dart';
 import 'dart:developer' as dev;
+import '../../pages/business/business_home.dart';
+import '../../utility/appurl.dart';
 
 class InfoForm extends StatefulWidget {
   const InfoForm({Key? key}) : super(key: key);

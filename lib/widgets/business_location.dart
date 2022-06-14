@@ -4,7 +4,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:openapp/constant.dart';
-import 'package:openapp/pages/business_home.dart';
+import '../../pages/business/business_home.dart';
 
 import '../../utility/Network/network_connectivity.dart';
 import 'package:http/http.dart' as http;

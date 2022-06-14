@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:openapp/constant.dart';
-import 'package:openapp/pages/widgets/Form/staff_form.dart';
+import 'package:openapp/widgets/Form/staff_form.dart';
 
 import '../../model/staff.dart';
 

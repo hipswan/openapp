@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/main.dart';
-import 'package:openapp/pages/widgets/hex_color.dart';
+import 'package:openapp/widgets/hex_color.dart';
 
 class TypeSelection extends StatefulWidget {
   const TypeSelection({Key? key}) : super(key: key);

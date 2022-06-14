@@ -2,15 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:openapp/pages/widgets/Form/staff_form.dart';
-import 'package:openapp/pages/widgets/staff_card.dart';
-import 'package:openapp/pages/widgets/staff_profile.dart';
+import 'package:openapp/widgets/Form/staff_form.dart';
+import 'package:openapp/widgets/staff_card.dart';
+import 'package:openapp/widgets/staff_profile.dart';
 
 import '../../constant.dart';
 import '../../model/staff.dart';
 import '../../utility/Network/network_connectivity.dart';
 import '../../utility/appurl.dart';
-import '../business_home.dart';
+import '../../pages/business/business_home.dart';
+
 import 'hex_color.dart';
 import 'package:http/http.dart' as http;
 

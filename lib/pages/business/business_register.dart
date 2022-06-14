@@ -5,13 +5,13 @@ import 'package:cupertino_stepper/cupertino_stepper.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:http/http.dart';
-import 'package:openapp/pages/widgets/form_page.dart';
-import 'package:openapp/pages/widgets/openapp_logo.dart';
-import 'package:openapp/pages/widgets/section.dart';
+import 'package:openapp/widgets/form_page.dart';
+import 'package:openapp/widgets/openapp_logo.dart';
+import 'package:openapp/widgets/section.dart';
 import 'package:openapp/utility/Network/network_connectivity.dart';
 import 'package:http/http.dart' as http;
 import 'package:openapp/utility/appurl.dart';
-import '../constant.dart';
+import '../../constant.dart';
 import 'dart:developer' as dev;
 
 class BusinessRegister extends StatefulWidget {

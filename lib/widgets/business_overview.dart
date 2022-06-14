@@ -10,7 +10,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../model/business.dart';
 import '../../utility/Network/network_connectivity.dart';
 import '../../utility/appurl.dart';
-import '../business_home.dart';
+import '../../pages/business/business_home.dart';
+
 import 'package:http/http.dart' as http;
 
 class BusinessOverview extends StatefulWidget {

@@ -5,30 +5,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:openapp/constant.dart';
-
-import '../../../model/service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as Im;
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import '../../../model/staff.dart';
 import '../../../utility/Network/network_connectivity.dart';
 import '../../../utility/appurl.dart';
-import '../../business_home.dart';
-import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 
-class ServiceForm extends StatefulWidget {
-  final Service? selectedService;
-  const ServiceForm({Key? key, this.selectedService}) : super(key: key);
+import '../../pages/business/business_home.dart';
+
+class StaffForm extends StatefulWidget {
+  final Staff? selectedStaff;
+  const StaffForm({
+    Key? key,
+    this.selectedStaff,
+  }) : super(key: key);
 
   @override
-  State<ServiceForm> createState() => _ServiceFormState();
+  State<StaffForm> createState() => _StaffFormState();
 }
 
-class _ServiceFormState extends State<ServiceForm> {
-  var networkImgPath;
+class _StaffFormState extends State<StaffForm> {
   var imagePath;
+  var networkImgPath;
   TextEditingController _name = TextEditingController();
-  TextEditingController _price = TextEditingController();
-  TextEditingController _duration = TextEditingController();
+  TextEditingController _igHandle = TextEditingController();
+  TextEditingController _fbHandle = TextEditingController();
+  TextEditingController _tiktokHandle = TextEditingController();
   TextEditingController _description = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   selectImage(parentContext) {
     return showDialog(
       context: parentContext,
@@ -110,7 +118,7 @@ class _ServiceFormState extends State<ServiceForm> {
 
         http.StreamedResponse response = await request.send();
 
-        if (response.statusCode == 201) {
+        if (response.statusCode == 200) {
           var parsedBody = json.decode(await response.stream.bytesToString());
           return parsedBody['filename'];
         } else {
@@ -124,27 +132,30 @@ class _ServiceFormState extends State<ServiceForm> {
     }
   }
 
-  Future maintainService(asset) async {
+  Future maintainStaff(asset) async {
     if (await CheckConnectivity.checkInternet()) {
       try {
         var body = {
-          "bId": currentBusiness?.bId,
-          "serviceName": _name.text,
-          "cost": _price.text,
-          "time": _duration.text,
+          "bId": currentBusiness?.bId.toString(),
+          "firstName": _name.text,
+          "igProfile": _igHandle.text,
+          "fbProfile": _fbHandle.text,
+          "tiktokProfile": _tiktokHandle.text,
           "desc": _description.text,
-          "picture": asset,
+          "profilePicture": asset,
         };
+
         var response;
-        if (widget.selectedService == null && asset != null) {
+        if (widget.selectedStaff == null && asset != null) {
+          var url = AppConstant.addBusinessStaff(currentBusiness?.bId);
           response = await http.post(
-            Uri.parse('${AppConstant.BUSINESS_SERVICES})'),
+            Uri.parse('$url'),
             body: body,
             headers: {'Authorization': 'Bearer ${currentBusiness?.token}'},
           );
         } else {
-          var url =
-              AppConstant.updateBusinessService(widget.selectedService?.bId);
+          var url = AppConstant.addBusinessStaff(currentBusiness?.bId);
+
           response = await http.patch(
             Uri.parse('$url'),
             body: body,
@@ -166,17 +177,18 @@ class _ServiceFormState extends State<ServiceForm> {
   }
 
   void _updateStaffProperties() {
-    if (widget.selectedService != null) {
-      _name.text = widget.selectedService?.serviceName ?? '';
-      _price.text = widget.selectedService?.cost.toString() ?? '';
-      _duration.text = widget.selectedService?.time.toString() ?? '';
-      _description.text = widget.selectedService?.desc ?? '';
-      networkImgPath = widget.selectedService?.picture ?? '';
+    if (widget.selectedStaff != null) {
+      _name.text = widget.selectedStaff?.firstName ?? '';
+      _igHandle.text = widget.selectedStaff?.igProfile ?? '';
+      _fbHandle.text = widget.selectedStaff?.fbProfile ?? '';
+      _tiktokHandle.text = widget.selectedStaff?.tiktokProfile ?? '';
+      networkImgPath = widget.selectedStaff?.profilePicture ?? '';
+      _description.text = widget.selectedStaff?.desc ?? '';
     } else {
       _name.text = '';
-      _price.text = '';
-      _duration.text = '';
-      networkImgPath = '';
+      _igHandle.text = '';
+      _fbHandle.text = '';
+      _tiktokHandle.text = '';
       _description.text = '';
     }
   }
@@ -189,10 +201,16 @@ class _ServiceFormState extends State<ServiceForm> {
   }
 
   @override
-  void didUpdateWidget(covariant ServiceForm oldWidget) {
+  void didUpdateWidget(covariant StaffForm oldWidget) {
     // TODO: implement didUpdateWidget
     _updateStaffProperties();
     super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 
   @override
@@ -201,20 +219,8 @@ class _ServiceFormState extends State<ServiceForm> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: Text('Maintain Services'),
+          title: Text('Maintain Staff'),
           centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () async {
-              FocusScopeNode currentFocus = FocusScope.of(context);
-
-              if (!currentFocus.hasPrimaryFocus) {
-                currentFocus.unfocus();
-              }
-              await Future.delayed(Duration(milliseconds: 100));
-              Navigator.pop(context);
-            },
-          ),
           actions: [
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -228,20 +234,16 @@ class _ServiceFormState extends State<ServiceForm> {
                   ),
                 ),
                 onPressed: () async {
-                  FocusScopeNode currentFocus = FocusScope.of(context);
-
-                  if (!currentFocus.hasPrimaryFocus) {
-                    currentFocus.unfocus();
-                  }
+                  //TODO: loader start
                   if (_formKey.currentState!.validate() && imagePath != null) {
                     uploadImage().then((asset) async {
-                      await maintainService(asset);
-                      widget.selectedService?.picture = asset;
+                      await maintainStaff(asset);
+                      widget.selectedStaff?.profilePicture = asset;
                       Navigator.pop(context);
-                    }).catchError((e) => dev.log(e.toString()));
-                  } else if (imagePath == null) {
-                    await maintainService(networkImgPath);
-                    widget.selectedService?.picture = networkImgPath;
+                    }).catchError((e) => dev.log(e));
+                  } else if (networkImgPath != null && imagePath == null) {
+                    await maintainStaff(networkImgPath);
+                    widget.selectedStaff?.profilePicture = networkImgPath;
                     Navigator.pop(context);
                   }
                 },
@@ -267,7 +269,7 @@ class _ServiceFormState extends State<ServiceForm> {
                     0.8,
                   ),
                   child: Text(
-                    'Saved to: /businessname',
+                    'Saved to: ${currentBusiness?.bName ?? '/businessname'} ',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -426,47 +428,54 @@ class _ServiceFormState extends State<ServiceForm> {
                       return null;
                     },
                     decoration: InputDecoration(
-                      labelText: 'Service Name',
+                      labelText: 'Full Name',
                       border: OutlineInputBorder(
                         borderSide: BorderSide(),
                       ),
                     ),
                   ),
                 ),
+                //TODO: handle validation
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextFormField(
-                    controller: _price,
+                  child: ConnectTile(
+                    asset: 'assets/images/connects/ig_logo.png',
+                    label: 'Instagram',
+                    controller: _igHandle,
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Please enter a price';
+                        return 'Please enter a Instagram handle';
                       }
                       return null;
                     },
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Service Price',
-                      hintText: 'in \$',
-                      border: OutlineInputBorder(),
-                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextFormField(
-                    controller: _duration,
+                  child: ConnectTile(
+                    asset: 'assets/images/connects/tiktok_logo.png',
+                    label: 'TikTok',
+                    controller: _tiktokHandle,
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Please enter duration';
+                        return 'Please enter a TikTok handle';
                       }
                       return null;
                     },
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Service Duration',
-                      hintText: 'in minutes',
-                      border: OutlineInputBorder(),
-                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ConnectTile(
+                    asset: 'assets/images/connects/fb_logo.png',
+                    label: 'Facebook',
+                    controller: _fbHandle,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a Facebook handle';
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 Padding(
@@ -491,6 +500,48 @@ class _ServiceFormState extends State<ServiceForm> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ConnectTile extends StatelessWidget {
+  final String asset;
+  final String label;
+  final TextEditingController controller;
+  final validator;
+  ConnectTile({
+    Key? key,
+    required this.asset,
+    required this.label,
+    required this.controller,
+    required this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Image(
+          width: 48,
+          height: 48,
+          image: AssetImage(
+            asset,
+          ),
+        ),
+        SizedBox(
+          width: 10,
+        ),
+        Expanded(
+          child: TextFormField(
+            controller: controller,
+            validator: validator,
+            decoration: InputDecoration(
+              labelText: label,
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

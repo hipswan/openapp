@@ -5,17 +5,17 @@ import 'package:flutter/src/widgets/framework.dart';
 
 import 'package:flutter/material.dart';
 import 'package:openapp/model/service.dart';
-import 'package:openapp/pages/client_appointment.dart';
+import './client_appointment.dart';
 import 'package:openapp/pages/login_page.dart';
-import 'package:openapp/pages/widgets/staff.dart';
-import 'package:openapp/pages/widgets/business_overview.dart';
-import 'package:openapp/pages/widgets/services.dart';
+import 'package:openapp/widgets/staff.dart';
+import 'package:openapp/widgets/business_overview.dart';
+import 'package:openapp/widgets/services.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-import '../model/business.dart';
-import '../model/staff.dart';
-import '../utility/Network/network_connectivity.dart';
-import '../utility/appurl.dart';
+import '../../model/business.dart';
+import '../../model/staff.dart';
+import '../../utility/Network/network_connectivity.dart';
+import '../../utility/appurl.dart';
 import 'package:http/http.dart' as http;
 
 class BusinessDetail extends StatefulWidget {

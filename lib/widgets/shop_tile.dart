@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
 
-import '../shop_page.dart';
+import '../pages/shop_page.dart';
 
 class ShopTile extends StatelessWidget {
   final title;

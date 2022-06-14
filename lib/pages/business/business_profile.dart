@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
-import 'package:openapp/pages/widgets/Form/info_form.dart';
-import 'package:openapp/pages/widgets/business_location.dart';
-import 'package:openapp/pages/widgets/hex_color.dart';
-import 'package:openapp/pages/widgets/info_wall.dart';
-import 'package:openapp/pages/widgets/services.dart';
-import 'package:openapp/pages/widgets/staff.dart';
+import 'package:openapp/widgets/Form/info_form.dart';
+import 'package:openapp/widgets/business_location.dart';
+import 'package:openapp/widgets/hex_color.dart';
+import 'package:openapp/widgets/info_wall.dart';
+import 'package:openapp/widgets/services.dart';
+import 'package:openapp/widgets/staff.dart';
 
-import '../utility/appurl.dart';
+import '../../utility/appurl.dart';
 import 'business_home.dart';
 
 class BusinessProfile extends StatefulWidget {

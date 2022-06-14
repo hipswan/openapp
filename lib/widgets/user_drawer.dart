@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
 
 import '../../utility/appurl.dart';
-import '../business_home.dart';
-import '../business_profile.dart';
+import '../pages/business/business_home.dart';
+import '../pages/business/business_profile.dart';
 import 'drawer_menu.dart';
 
 class UserDrawer extends StatelessWidget {
