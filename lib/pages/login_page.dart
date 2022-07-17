@@ -27,8 +27,8 @@ class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
   final _formKey = GlobalKey<FormState>();
 
-  final emailId = TextEditingController(text: "");
-  final password = TextEditingController(text: "");
+  final emailId = TextEditingController(text: "test@test.com");
+  final password = TextEditingController(text: "password");
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -146,7 +146,7 @@ class LoginPage extends StatelessWidget {
                 onPressed: () {
                   //TODO: Loader shown
                   siginUser().then((value) {
-                    Loader.hide();
+                    // Loader.hide();
                     if (value.containsKey('bName')) {
                       // currentBusiness = Business.fromJson(value);
                       Navigator.push(

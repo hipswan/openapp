@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/main.dart';
 import 'package:openapp/widgets/hex_color.dart';
@@ -78,6 +77,10 @@ class _TypeSelectionState extends State<TypeSelection> {
                     ],
                     tileMode: TileMode.clamp,
                   ),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
                 ),
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -129,7 +132,6 @@ class _TypeSelectionState extends State<TypeSelection> {
                           ChoiceChip(
                             labelPadding: EdgeInsets.all(10),
                             padding: EdgeInsets.all(10),
-                            labelStyle: homePageTextStyle,
                             selectedColor: Colors.redAccent,
                             selectedShadowColor: Colors.grey,
                             avatar: CircleAvatar(
@@ -138,10 +140,18 @@ class _TypeSelectionState extends State<TypeSelection> {
                                 'B',
                                 style: TextStyle(
                                   color: thirdColor,
+                                  fontSize: 18,
                                 ),
                               ),
                             ),
-                            label: Text('Business'),
+                            label: Text(
+                              'Business',
+                              style: TextStyle(
+                                color: _value == 0 ? thirdColor : Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             selected: _value == 0,
                             onSelected: (bool selected) {
                               setState(() {
@@ -162,10 +172,18 @@ class _TypeSelectionState extends State<TypeSelection> {
                                 'C',
                                 style: TextStyle(
                                   color: thirdColor,
+                                  fontSize: 18,
                                 ),
                               ),
                             ),
-                            label: Text('Customer'),
+                            label: Text(
+                              'Customer',
+                              style: TextStyle(
+                                color: _value == 1 ? thirdColor : Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             selected: _value == 1,
                             onSelected: (bool selected) {
                               setState(

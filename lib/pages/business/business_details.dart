@@ -46,9 +46,7 @@ class _BusinessDetailState extends State<BusinessDetail> {
           widget.selectedBusiness.services = parsedJson
               .map<Service>((json) => Service.fromJson(json))
               .toList();
-          return parsedJson
-              .map<Service>((json) => Service.fromJson(json))
-              .toList();
+          return widget.selectedBusiness.services ?? [];
         } else {
           throw Exception('Failed to fetch business services');
         }
@@ -78,7 +76,7 @@ class _BusinessDetailState extends State<BusinessDetail> {
           var parsedJson = json.decode(response.body);
           widget.selectedBusiness.staff =
               parsedJson.map<Staff>((json) => Staff.fromJson(json)).toList();
-          return parsedJson.map<Staff>((json) => Staff.fromJson(json)).toList();
+          return widget.selectedBusiness.staff ?? [];
         } else {
           throw Exception('Failed to fetch business staff');
         }
@@ -139,10 +137,7 @@ class _BusinessDetailState extends State<BusinessDetail> {
                         BusinessOverview(
                           selectedBusiness: widget.selectedBusiness,
                         ),
-                        ClientAppointment(
-                            selectedBusiness: widget.selectedBusiness,
-                            staffList: staff,
-                            serviceList: services),
+                        ClientAppointment(),
                       ],
                     ),
                   ),

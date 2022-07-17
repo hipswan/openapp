@@ -76,6 +76,52 @@ class _BusinessOverviewState extends State<BusinessOverview> {
 
   Future<String> getOverviewDetails() async {
     _daysOperating = await getBusinessHours();
+    if (_daysOperating == null || (_daysOperating as List).isEmpty) {
+      _daysOperating = [
+        {
+          "day": 0,
+          "startTime": "--:--",
+          "endTime": "--:--",
+          "isWorking": false
+        },
+        {
+          "day": 0,
+          "startTime": "--:--",
+          "endTime": "--:--",
+          "isWorking": false
+        },
+        {
+          "day": 0,
+          "startTime": "--:--",
+          "endTime": "--:--",
+          "isWorking": false
+        },
+        {
+          "day": 0,
+          "startTime": "--:--",
+          "endTime": "--:--",
+          "isWorking": false
+        },
+        {
+          "day": 0,
+          "startTime": "--:--",
+          "endTime": "--:--",
+          "isWorking": false
+        },
+        {
+          "day": 0,
+          "startTime": "--:--",
+          "endTime": "--:--",
+          "isWorking": false
+        },
+        {
+          "day": 0,
+          "startTime": "--:--",
+          "endTime": "--:--",
+          "isWorking": false
+        },
+      ];
+    }
     address = widget.selectedBusiness.lat!.isEmpty
         ? 'business location not updated'
         : await _getAddress();
@@ -120,8 +166,36 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                     horizontal: 20.0,
                     vertical: 10.0,
                   ),
+                  child: Container(
+                    width: 150,
+                    height: 150,
+                    alignment: Alignment.centerLeft,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        10,
+                      ),
+                      child: widget.selectedBusiness.image1!.isEmpty
+                          ? Image.asset(
+                              'assets/images/icons/open_app.png',
+                              fit: BoxFit.cover,
+                            )
+                          : CachedNetworkImage(
+                              imageUrl:
+                                  '${AppConstant.PICTURE_ASSET_PATH}/${widget.selectedBusiness.image1}',
+                              errorWidget: (context, error, errorDynamic) =>
+                                  Image.asset(
+                                      'assets/images/icons/open_app.png'),
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                  ),
                   child: Text(
-                    '${widget.selectedBusiness.bName}',
+                    widget.selectedBusiness.bName ?? "",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -129,102 +203,93 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 20.0,
                   ),
-                  child: SizedBox(
-                    height: 150,
-                    child: ListView(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 10.0,
-                      ),
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            20.0,
-                          ),
-                          child: Container(
-                            width: 150,
-                            color: secondaryColor,
-                            child: widget.selectedBusiness.image1!.isEmpty
-                                ? FlutterLogo()
-                                : CachedNetworkImage(
-                                    imageUrl:
-                                        '${AppConstant.PICTURE_ASSET_PATH}/${widget.selectedBusiness.image1}',
-                                    fit: BoxFit.cover,
-                                  ),
-                          ),
-                        ),
-                      ],
+                  child: Text(
+                    'Type: ${widget.selectedBusiness.bType ?? ""}',
+                    strutStyle: StrutStyle(
+                      fontSize: 20,
+                    ),
+                    style: TextStyle(
+                      fontSize: 16,
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                  ),
-                  child: Text(
-                    '${widget.selectedBusiness.bType}',
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                  ),
-                  child: Text(
-                    '${widget.selectedBusiness.bCity} , ${widget.selectedBusiness.bState}',
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 20.0,
                   ),
                   child: Text(
                     'Open: Closes 7pm',
+                    strutStyle: StrutStyle(
+                      fontSize: 20,
+                    ),
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 20.0,
                   ),
                   child: Row(
                     children: [
                       ActionChip(
+                        backgroundColor: secondaryColor,
                         avatar: Icon(
                           Icons.call,
+                          size: 16,
+                          color: thirdColor,
                         ),
+                        elevation: 3,
                         label: Text(
                           'Call',
+                          style: TextStyle(
+                            color: thirdColor,
+                            fontSize: 16,
+                          ),
                         ),
                         onPressed: () {},
                       ),
-                      SizedBox(
-                        width: 10.0,
-                      ),
+                      Spacer(),
                       ActionChip(
+                        backgroundColor: secondaryColor,
                         onPressed: () {},
                         avatar: Icon(
                           Icons.directions,
+                          size: 16,
+                          color: thirdColor,
                         ),
                         label: Text(
                           'Directions',
+                          style: TextStyle(
+                            color: thirdColor,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
-                      SizedBox(
-                        width: 10.0,
-                      ),
+                      Spacer(),
                       ActionChip(
+                        backgroundColor: secondaryColor,
                         onPressed: () {
                           Share.share(
-                              'check out my website https://openapp.com',
-                              subject: 'Look what I made!');
+                              'check out my website http://rxfarm91.cse.buffalo.edu:500/',
+                              subject:
+                                  'Reserve your favourite spot in an instance!');
                         },
                         avatar: Icon(
                           Icons.share,
+                          size: 16,
+                          color: thirdColor,
                         ),
                         label: Text(
                           'Share',
+                          style: TextStyle(
+                            color: thirdColor,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ],
@@ -247,56 +312,56 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                     horizontal: 20.0,
                   ),
                   onTap: () async {
-                    await Future.delayed(Duration(milliseconds: 100));
-                    setState(() {
-                      if (_animatedOpenHours is Text)
-                        _animatedOpenHours = Column(
-                          children: List.generate(7, (index) {
-                            var dateToday = DateTime.now();
-                            var currWeekNumber = dateToday.weekday;
-                            var weekNumber = (index) + currWeekNumber;
-                            if (weekNumber > 7) weekNumber = weekNumber - 7;
-                            var startTime =
-                                _daysOperating[weekNumber - 1]["startTime"];
-                            var endTime =
-                                _daysOperating[weekNumber - 1]["endTime"];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    dayData[weekNumber]!,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: currWeekNumber == weekNumber
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
+                    await Future.delayed(
+                      Duration(milliseconds: 100),
+                    );
+                    if (_animatedOpenHours is Text)
+                      _animatedOpenHours = Column(
+                        children: List.generate(7, (index) {
+                          var dateToday = DateTime.now();
+                          var currWeekNumber = dateToday.weekday;
+                          var weekNumber = (index) + currWeekNumber;
+                          if (weekNumber > 7) weekNumber = weekNumber - 7;
+                          var startTime =
+                              _daysOperating[weekNumber - 1]["startTime"];
+                          var endTime =
+                              _daysOperating[weekNumber - 1]["endTime"];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  dayData[weekNumber]!,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: currWeekNumber == weekNumber
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
-                                  Text(
-                                    '''${startTime} - ${endTime}''',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: currWeekNumber == weekNumber
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
+                                ),
+                                Text(
+                                  '''${startTime ?? '--:--'} to ${endTime ?? '--:--'}''',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: currWeekNumber == weekNumber
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
-                                ],
-                              ),
-                            );
-                          }),
-                        );
-                      else {
-                        _animatedOpenHours = Text(
-                          'Open Hours',
-                        );
-                      }
-                    });
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      );
+                    else {
+                      _animatedOpenHours = Text(
+                        'Open Hours',
+                      );
+                    }
+                    setState(() {});
                   },
                   leading: Icon(
                     Icons.watch_later_outlined,

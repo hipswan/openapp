@@ -2,12 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
-import 'package:openapp/model/business.dart';
-import 'package:openapp/pages/business/business_home.dart';
 import 'package:openapp/pages/business/business_page.dart';
-import 'package:openapp/pages/customer/client_map.dart';
+import 'package:openapp/pages/customer/client_home.dart';
 import 'package:openapp/pages/customer/client_register.dart';
-import 'package:openapp/pages/customer/home_page.dart';
 import 'package:openapp/pages/login_page.dart';
 import 'package:openapp/pages/post_items.dart';
 import 'package:openapp/pages/business/business_register.dart';
@@ -23,7 +20,9 @@ void main() async {
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Material(
       child: Container(
-        color: Colors.green,
+        color: Colors.green.withOpacity(
+          0.5,
+        ),
         child: Center(
           child: Text(
             'OpenApp facing issue: ${details.toString()}',

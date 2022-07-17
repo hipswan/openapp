@@ -19,7 +19,7 @@ class AppConstant {
   static getBusiness(bId) => BASE_URL + "business/$bId";
 
   static const PICTURE_ASSET_PATH =
-      'http://rxfarm91.cse.buffalo.edu:5001/' + "assets/";
+      'http://rxfarm91.cse.buffalo.edu:5001/assets';
   static const PICTURE_UPLOAD = BASE_URL + "file";
 
   static const String BUSINESS_POST_INFO = "business_login";
@@ -40,6 +40,9 @@ class AppConstant {
   static const BUSINESS_SERVICES = BASE_URL + "business-services";
   static updateBusinessService(bId) => BASE_URL + "business-services/$bId";
   static getBusinessService(bId) => BASE_URL + "business-services?bId=$bId";
+  static getBusinessServiceById(serviceId) =>
+      BASE_URL + "business-services/$serviceId";
+
   static deleteBusinesssHourById(bId, sId) =>
       BASE_URL + "business-services/$bId/$sId";
   static GET_SERVICE_BY_ID(id) => BASE_URL + "business-services?bId=$id";
@@ -52,7 +55,7 @@ class AppConstant {
   static getBusinessStaff(bId) => BASE_URL + 'business/$bId/staff';
   static deleteBusinessStaff(bId, sId) =>
       BASE_URL + 'business/$bId/staff/$sId/delete';
-  static getBusinessStaffByID(bussinessID, staffID) => "business_login";
+  static getBusinessStaffByID(bId, staffId) => "business/$bId/staff/$staffId";
 
   static updateBusinessStaffByID(bussinessID, staffID) => "business_login";
 

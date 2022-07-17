@@ -2,6 +2,7 @@ import 'dart:convert';
 import "package:collection/collection.dart";
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:openapp/constant.dart';
 import 'package:openapp/pages/login_page.dart';
 import 'package:openapp/widgets/Form/appointment_form.dart';
@@ -13,24 +14,19 @@ import '../../model/business.dart';
 import '../../model/staff.dart';
 import '../../utility/Network/network_connectivity.dart';
 import 'package:http/http.dart' as http;
+import 'dart:developer' as dev;
 
 class ClientAppointment extends StatefulWidget {
-  final Business selectedBusiness;
-  final List<Staff> staffList;
-  final List<Service> serviceList;
-  const ClientAppointment(
-      {Key? key,
-      required this.selectedBusiness,
-      required this.staffList,
-      required this.serviceList})
-      : super(key: key);
+  const ClientAppointment({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<ClientAppointment> createState() => _ClientAppointmentState();
 }
 
 class _ClientAppointmentState extends State<ClientAppointment> {
-  Future<List<BusinessAppointment>> getClientAppointmentDetails() async {
+  Future getClientAppointments() async {
     if (await CheckConnectivity.checkInternet()) {
       try {
         var url =
@@ -42,10 +38,7 @@ class _ClientAppointmentState extends State<ClientAppointment> {
         if (response.statusCode == 200) {
           //  json.decode(response.body);
           var parsedJson = json.decode(response.body);
-          return parsedJson
-              .map<BusinessAppointment>(
-                  (json) => BusinessAppointment.fromJson(json))
-              .toList();
+          return parsedJson;
         } else {
           throw Exception('Failed to fetch business services');
         }
@@ -57,27 +50,147 @@ class _ClientAppointmentState extends State<ClientAppointment> {
     }
   }
 
+  Future<String> getAddress(lat, long) async {
+    try {
+      // Places are retrieved using the coordinates
+      List<Placemark> p =
+          await placemarkFromCoordinates(double.parse(lat), double.parse(long));
+
+      // Taking the most probable result
+      Placemark place = p[0];
+
+      // Structuring the address
+      return "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+    } catch (e) {
+      print(e);
+      return "{address unavailable}";
+    }
+  }
+
+  Future<Service> getBusinessServicesById(serviceId) async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        var url = AppConstant.getBusinessServiceById(
+          serviceId,
+        );
+        var response = await http.get(Uri.parse('$url'), headers: {
+          'Authorization': 'Bearer ${currentClient?.token}',
+        });
+
+        if (response.statusCode == 200) {
+          //  json.decode(response.body);
+          var parsedJson = json.decode(response.body);
+
+          return Service.fromJson(parsedJson);
+        } else {
+          throw Exception('Failed to fetch business services');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to internet');
+    }
+  }
+
+  Future<Staff> getBusinessStaffById(bId, staffId) async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        var url = AppConstant.getBusinessStaffByID(bId, staffId);
+        var response = await http.get(
+          Uri.parse('$url'),
+          headers: {
+            'Authorization': 'Bearer ${currentClient?.token}',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          //  json.decode(response.body);
+          var parsedJson = json.decode(response.body);
+          return Staff.fromJson(parsedJson);
+        } else {
+          throw Exception('Failed to fetch business staff');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to internet');
+    }
+  }
+
+  Future<Business> getBusinessById(bId) async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        // var body = {
+        //   "bId": currentBusiness?.bId.toString(),
+        //   "lat": _position?.latitude.toString(),
+        //   "long": _position?.longitude.toString(),
+        // };
+        var startDate = DateTime.now();
+        var timeUtc = startDate.toUtc();
+        var url = 'http://rxfarm91.cse.buffalo.edu:5001/api/business/$bId}';
+        var response = await http.get(
+          Uri.parse('$url'),
+        );
+
+        if (response.statusCode == 200) {
+          //  json.decode(response.body);
+          dev.log('added/updated business location');
+          var parsedJson = json.decode(response.body);
+          return Business.fromJson(parsedJson);
+        } else {
+          throw Exception('Failed to update business');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
+    }
+  }
+
+  Future<List<BusinessAppointment>> getClientAppointmentsInDetail() async {
+    var appointments = await getClientAppointments();
+    Map appointmentsBySlotId =
+        appointments.groupListsBy((Map obj) => obj["slotId"]);
+    List<BusinessAppointment> businessAppointments = [];
+    for (var slotId in appointmentsBySlotId.keys) {
+      var appointmentsInSlot = appointmentsBySlotId[slotId];
+      var apointmentDetails = appointmentsInSlot.first;
+      Business business = await getBusinessById(apointmentDetails["bId"]);
+      Staff? staff = await getBusinessStaffById(
+          apointmentDetails["bId"], apointmentDetails["staffId"]);
+      Service service =
+          await getBusinessServicesById(apointmentDetails["serviceId"]);
+      businessAppointments.add(
+        BusinessAppointment(
+          slotId: slotId,
+          appointments: appointmentsInSlot,
+          slots: appointmentsInSlot.length,
+          startDateTime: DateTime.parse(
+              appointmentsInSlot.first["startDateTime"].toString()),
+          endDateTime: DateTime.parse(
+                  appointmentsInSlot.first["startDateTime"].toString())
+              .add(
+            Duration(
+              minutes: service.time ?? 0,
+            ),
+          ),
+          bName: business.bName,
+          serviceName: service.serviceName,
+          serviceCharge: service.cost.toString(),
+          staffName: staff.firstName,
+          address: await getAddress(business.lat, business.long),
+        ),
+      );
+    }
+    return businessAppointments;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AppointmentForm(
-                  selectedBusiness: widget.selectedBusiness,
-                  staffList: widget.staffList,
-                  serviceList: widget.serviceList),
-            ),
-          );
-        },
-        backgroundColor: HexColor('#143F6B'),
-        child: Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
-      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(
           vertical: 8.0,
@@ -99,7 +212,7 @@ class _ClientAppointmentState extends State<ClientAppointment> {
             ),
             Expanded(
               child: FutureBuilder<List<BusinessAppointment>>(
-                future: getClientAppointmentDetails(),
+                future: getClientAppointmentsInDetail(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
@@ -126,8 +239,6 @@ class _ClientAppointmentState extends State<ClientAppointment> {
                           : ListView(
                               children: [
                                 ...listOfAppointment.map<Widget>((appointment) {
-                                  var staff = widget.staffList[0];
-                                  var service = widget.serviceList[0];
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 8.0,
@@ -143,12 +254,10 @@ class _ClientAppointmentState extends State<ClientAppointment> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                              '${appointment.firstName} ${appointment.lastName}'),
-                                          Text(
-                                            'Services: ${service.serviceName}',
+                                            'Services: ${appointment.serviceName}',
                                           ),
                                           Text(
-                                            'Staff: ${staff.firstName}',
+                                            'Staff: ${appointment.staffName}',
                                           ),
                                         ],
                                       ),

@@ -291,171 +291,289 @@ class ClientMapState extends State<ClientMap> {
                               ? DraggableScrollableSheet(
                                   initialChildSize: 0.5,
                                   minChildSize: 0.3,
-                                  maxChildSize: 1.0 -
-                                      150 / MediaQuery.of(context).size.height,
+                                  maxChildSize: 0.8,
                                   builder:
                                       (container, _scrollSheetController) =>
                                           Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey,
+                                        width: 0.6,
+                                      ),
                                       borderRadius: BorderRadius.only(
                                         topLeft: Radius.circular(20),
                                         topRight: Radius.circular(20),
                                       ),
                                     ),
-                                    child: ListView(
-                                        controller: _scrollSheetController,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Center(
-                                              child: Container(
-                                                height: 6,
-                                                width: 45,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade300,
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Center(
+                                            child: Container(
+                                              height: 6,
+                                              width: 45,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade300,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
                                               ),
                                             ),
                                           ),
-                                          ...List.generate(
-                                            listOfBusiness.length,
-                                            (index) => Material(
-                                              key: ValueKey(index),
-                                              child: InkWell(
-                                                splashColor: secondaryColor,
-                                                onTap: () async {
-                                                  // await Future.delayed(
-                                                  //   Duration(
-                                                  //     milliseconds: 200,
-                                                  //   ),
-                                                  // );
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          BusinessDetail(
-                                                        selectedBusiness:
-                                                            listOfBusiness[
-                                                                index],
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 20.0,
-                                                  ),
-                                                  margin: EdgeInsets.only(
-                                                    bottom: 10.0,
-                                                    left: 10.0,
-                                                    right: 10.0,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        thirdColor.withOpacity(
-                                                      0.6,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                      10,
-                                                    ),
-                                                  ),
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 150,
-                                                        child: ListView(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                            vertical: 10.0,
+                                        ),
+                                        SizedBox(
+                                          height: 20,
+                                        ),
+                                        Expanded(
+                                          child: ListView(
+                                            controller: _scrollSheetController,
+                                            children: [
+                                              ...List.generate(
+                                                listOfBusiness.length,
+                                                (index) => Material(
+                                                  key: ValueKey(index),
+                                                  child: InkWell(
+                                                    splashColor: secondaryColor,
+                                                    onTap: () async {
+                                                      await Future.delayed(
+                                                        Duration(
+                                                          milliseconds: 200,
+                                                        ),
+                                                      );
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              BusinessDetail(
+                                                            selectedBusiness:
+                                                                listOfBusiness[
+                                                                    index],
                                                           ),
-                                                          scrollDirection:
-                                                              Axis.horizontal,
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                20.0,
-                                                              ),
-                                                              child: Container(
-                                                                width: 150,
-                                                                child: listOfBusiness[
-                                                                            index]
-                                                                        .image1!
-                                                                        .isEmpty
-                                                                    ? FlutterLogo()
-                                                                    : CachedNetworkImage(
-                                                                        imageUrl:
-                                                                            '${AppConstant.PICTURE_ASSET_PATH}/${listOfBusiness[index].image1}',
-                                                                      ),
-                                                              ),
-                                                            ),
-                                                          ],
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                        horizontal: 20.0,
+                                                      ),
+                                                      margin: EdgeInsets.only(
+                                                        bottom: 10.0,
+                                                        left: 10.0,
+                                                        right: 10.0,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: thirdColor
+                                                            .withOpacity(
+                                                          0.6,
+                                                        ),
+                                                        border: Border.all(
+                                                          color: secondaryColor,
+                                                          width: 0.5,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                          10,
                                                         ),
                                                       ),
-                                                      Text(
-                                                        businessList[index]
-                                                            ["title"] as String,
-                                                        style: TextStyle(
-                                                          fontSize: 20,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        'category',
-                                                      ),
-                                                      Text(
-                                                        'Open: Closes 7pm',
-                                                      ),
-                                                      Row(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
-                                                          ActionChip(
-                                                            avatar: Icon(
-                                                              Icons.call,
+                                                          Padding(
+                                                            padding:
+                                                                EdgeInsets.only(
+                                                              top: 20,
                                                             ),
-                                                            label: Text(
-                                                              'Call',
+                                                            child: Row(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                ClipRRect(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                    10,
+                                                                  ),
+                                                                  child:
+                                                                      Container(
+                                                                    width: 125,
+                                                                    child: listOfBusiness[index]
+                                                                            .image1!
+                                                                            .isEmpty
+                                                                        ? Image
+                                                                            .asset(
+                                                                            'assets/images/icons/open_app.png',
+                                                                            fit:
+                                                                                BoxFit.cover,
+                                                                          )
+                                                                        : CachedNetworkImage(
+                                                                            imageUrl:
+                                                                                '${AppConstant.PICTURE_ASSET_PATH}/${listOfBusiness[index].image1}',
+                                                                            errorWidget: (context, error, errorDynamic) =>
+                                                                                Image.asset('assets/images/icons/open_app.png'),
+                                                                            fit:
+                                                                                BoxFit.cover,
+                                                                          ),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  width: 20,
+                                                                ),
+                                                                Expanded(
+                                                                  child: Column(
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .start,
+                                                                    children: [
+                                                                      Text(
+                                                                        listOfBusiness[index].bName
+                                                                            as String,
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              20,
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                        ),
+                                                                      ),
+                                                                      Text(
+                                                                        'Type: ${listOfBusiness[index].bType as String}',
+                                                                        strutStyle:
+                                                                            StrutStyle(
+                                                                          fontSize:
+                                                                              20,
+                                                                        ),
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ),
+                                                                      ),
+                                                                      Text(
+                                                                        'Open: Closes 7pm',
+                                                                        strutStyle:
+                                                                            StrutStyle(
+                                                                          fontSize:
+                                                                              20,
+                                                                        ),
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                )
+                                                              ],
                                                             ),
-                                                            onPressed: () {},
                                                           ),
-                                                          ActionChip(
-                                                            onPressed: () {},
-                                                            avatar: Icon(
-                                                              Icons.directions,
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                              vertical: 10.0,
                                                             ),
-                                                            label: Text(
-                                                              'Directions',
-                                                            ),
-                                                          ),
-                                                          ActionChip(
-                                                            onPressed: () {
-                                                              Share.share(
-                                                                  'check out my website https://openapp.com',
-                                                                  subject:
-                                                                      'Look what I made!');
-                                                            },
-                                                            avatar: Icon(
-                                                              Icons.share,
-                                                            ),
-                                                            label: Text(
-                                                              'Share',
+                                                            child: Row(
+                                                              children: [
+                                                                ActionChip(
+                                                                  backgroundColor:
+                                                                      secondaryColor,
+                                                                  avatar: Icon(
+                                                                    Icons.call,
+                                                                    size: 16,
+                                                                    color:
+                                                                        thirdColor,
+                                                                  ),
+                                                                  elevation: 3,
+                                                                  label: Text(
+                                                                    'Call',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color:
+                                                                          thirdColor,
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                  ),
+                                                                  onPressed:
+                                                                      () {},
+                                                                ),
+                                                                Spacer(),
+                                                                ActionChip(
+                                                                  backgroundColor:
+                                                                      secondaryColor,
+                                                                  onPressed:
+                                                                      () {},
+                                                                  avatar: Icon(
+                                                                    Icons
+                                                                        .directions,
+                                                                    size: 16,
+                                                                    color:
+                                                                        thirdColor,
+                                                                  ),
+                                                                  label: Text(
+                                                                    'Directions',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color:
+                                                                          thirdColor,
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Spacer(),
+                                                                ActionChip(
+                                                                  backgroundColor:
+                                                                      secondaryColor,
+                                                                  onPressed:
+                                                                      () {
+                                                                    Share.share(
+                                                                        'check out my website http://rxfarm91.cse.buffalo.edu:500/',
+                                                                        subject:
+                                                                            'Reserve your favourite spot in an instance!');
+                                                                  },
+                                                                  avatar: Icon(
+                                                                    Icons.share,
+                                                                    size: 16,
+                                                                    color:
+                                                                        thirdColor,
+                                                                  ),
+                                                                  label: Text(
+                                                                    'Share',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color:
+                                                                          thirdColor,
+                                                                      fontSize:
+                                                                          16,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ),
                                                         ],
                                                       ),
-                                                    ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
+                                            ]..add(
+                                                SizedBox(
+                                                  height: 100,
+                                                ),
+                                              ),
                                           ),
-                                        ]),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 )
                               : Container(),
@@ -1157,11 +1275,28 @@ class ClientMapState extends State<ClientMap> {
                 );
               }
             }),
-        // floatingActionButton: FloatingActionButton.extended(
-        //   onPressed: _goToTheLake,
-        //   label: Text('To the lake!'),
-        //   icon: Icon(Icons.directions_boat),
-        // ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            await Future.delayed(
+              Duration(
+                milliseconds: 200,
+              ),
+            );
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) => BusinessDetail(
+            //       selectedBusiness: listOfBusiness[index],
+            //     ),
+            //   ),
+            // );
+          },
+          backgroundColor: secondaryColor,
+          child: Icon(
+            Icons.calendar_today,
+            color: thirdColor,
+          ),
+        ),
       ),
     );
   }

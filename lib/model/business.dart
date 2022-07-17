@@ -195,62 +195,78 @@ class Business {
 //
 //     final appointment = appointmentFromJson(jsonString);
 
+// To parse this JSON data, do
+//
+//     final businessAppointment = businessAppointmentFromJson(jsonString);
+
 class BusinessAppointment {
   BusinessAppointment({
-    this.appId,
-    this.bId,
-    this.uId,
-    this.staffId,
-    this.serviceId,
-    this.startDateTime,
     this.slotId,
-    this.id,
+    this.appointments,
+    this.slots,
+    this.startDateTime,
+    this.endDateTime,
+    this.bName,
+    this.serviceName,
+    this.serviceCharge,
+    this.staffName,
+    this.address,
+    this.notes,
     this.emailId,
     this.firstName,
     this.lastName,
-    this.notes,
+    this.staffId,
   });
 
-  int? appId;
-  int? bId;
-  int? uId;
-  int? staffId;
-  int? serviceId;
-  DateTime? startDateTime;
-  int? slotId;
-  int? id;
-  String? emailId;
-  String? firstName;
-  String? lastName;
-  String? notes;
+  final String? slotId;
+  final String? appointments;
+  final String? slots;
+  final DateTime? startDateTime;
+  final DateTime? endDateTime;
+  final String? bName;
+  final String? serviceName;
+  final String? serviceCharge;
+  final String? staffName;
+  final String? address;
+  final String? notes;
+  final String? emailId;
+  final String? firstName;
+  final String? lastName;
+  final String? staffId;
 
   BusinessAppointment copyWith({
-    int? appId,
-    int? bId,
-    int? uId,
-    int? staffId,
-    int? serviceId,
+    String? slotId,
+    String? appointments,
+    String? slots,
     DateTime? startDateTime,
-    int? slotId,
-    int? id,
+    DateTime? endDateTime,
+    String? bName,
+    String? serviceName,
+    String? serviceCharge,
+    String? staffName,
+    String? address,
+    String? notes,
     String? emailId,
     String? firstName,
     String? lastName,
-    String? notes,
+    String? staffId,
   }) =>
       BusinessAppointment(
-        appId: appId ?? this.appId,
-        bId: bId ?? this.bId,
-        uId: uId ?? this.uId,
-        staffId: staffId ?? this.staffId,
-        serviceId: serviceId ?? this.serviceId,
-        startDateTime: startDateTime ?? this.startDateTime,
         slotId: slotId ?? this.slotId,
-        id: id ?? this.id,
+        appointments: appointments ?? this.appointments,
+        slots: slots ?? this.slots,
+        startDateTime: startDateTime ?? this.startDateTime,
+        endDateTime: endDateTime ?? this.endDateTime,
+        bName: bName ?? this.bName,
+        serviceName: serviceName ?? this.serviceName,
+        serviceCharge: serviceCharge ?? this.serviceCharge,
+        staffName: staffName ?? this.staffName,
+        address: address ?? this.address,
+        notes: notes ?? this.notes,
         emailId: emailId ?? this.emailId,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
-        notes: notes ?? this.notes,
+        staffId: staffId ?? this.staffId,
       );
 
   factory BusinessAppointment.fromRawJson(String str) =>
@@ -260,32 +276,38 @@ class BusinessAppointment {
 
   factory BusinessAppointment.fromJson(Map<String, dynamic> json) =>
       BusinessAppointment(
-        appId: json["appId"],
-        bId: json["bId"],
-        uId: json["uId"],
-        staffId: json["staffId"],
-        serviceId: json["serviceId"],
-        startDateTime: DateTime.parse(json["startDateTime"]),
         slotId: json["slotId"],
-        id: json["id"],
+        appointments: json["appointments"],
+        slots: json["slots"],
+        startDateTime: json["startDateTime"],
+        endDateTime: json["endDateTime"],
+        bName: json["bName"],
+        serviceName: json["serviceName"],
+        serviceCharge: json["serviceCharge"],
+        staffName: json["staffName"],
+        address: json["address"],
+        notes: json["notes"],
         emailId: json["emailId"],
         firstName: json["firstName"],
         lastName: json["lastName"],
-        notes: json["notes"],
+        staffId: json["staffId"],
       );
 
   Map<String, dynamic> toJson() => {
-        "appId": appId,
-        "bId": bId,
-        "uId": uId,
-        "staffId": staffId,
-        "serviceId": serviceId,
-        "startDateTime": startDateTime!.toIso8601String(),
         "slotId": slotId,
-        "id": id,
+        "appointments": appointments,
+        "slots": slots,
+        "startDateTime": startDateTime,
+        "endDateTime": endDateTime,
+        "bName": bName,
+        "serviceName": serviceName,
+        "serviceCharge": serviceCharge,
+        "staffName": staffName,
+        "address": address,
+        "notes": notes,
         "emailId": emailId,
         "firstName": firstName,
         "lastName": lastName,
-        "notes": notes,
+        "staffId": staffId,
       };
 }
