@@ -8,7 +8,9 @@ import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:http/http.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/main.dart';
 import 'package:openapp/pages/business/business_home.dart';
+import 'package:openapp/pages/customer_home.dart';
 import 'package:openapp/widgets/openapp_logo.dart';
 
 import '../model/business.dart';
@@ -21,14 +23,14 @@ import 'package:http/http.dart' as http;
 import '../utility/appurl.dart';
 
 // Business? currentBusiness;
-Customer? currentClient;
+Customer? currentCustomer;
 
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
   final _formKey = GlobalKey<FormState>();
 
-  final emailId = TextEditingController(text: "test@test.com");
-  final password = TextEditingController(text: "password");
+  final emailId = TextEditingController(text: "tpro@test.com");
+  final password = TextEditingController(text: "qqq");
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -99,9 +101,9 @@ class LoginPage extends StatelessWidget {
       try {
         final response = await http.post(
           Uri.parse('${AppConstant.SIGNIN}'),
-          body: {"emailId": emailId.text, "password": password.text},
+          body: {"email": emailId.text, "password": password.text},
         );
-        if (response.statusCode == 201) {
+        if (response.statusCode == 200) {
           final parsedJson = json.decode(response.body);
           return parsedJson;
         } else {
@@ -145,24 +147,16 @@ class LoginPage extends StatelessWidget {
                 ),
                 onPressed: () {
                   //TODO: Loader shown
-                  siginUser().then((value) {
+                  siginUser().then((value) async {
                     // Loader.hide();
-                    if (value.containsKey('bName')) {
-                      // currentBusiness = Business.fromJson(value);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BusinessHome(
-                            emailId: emailId.text,
-                            password: password.text,
-                          ),
-                        ),
-                      );
-                    } else {
-                      currentClient = Customer.fromJson(value);
+                    // await prefs!.setString('token', value['token']);
+                    currentCustomer = Customer.fromJson(value);
 
-                      Navigator.pushNamed(context, '/home');
-                    }
+                    // currentBusiness = Business.fromJson(value);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CustomerHome()),
+                    );
                   }).catchError((error) {
                     Loader.hide();
                     dev.log(error.toString());

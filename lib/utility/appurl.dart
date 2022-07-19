@@ -1,11 +1,13 @@
 class AppConstant {
-  static const String BASE_URL = "http://rxfarm91.cse.buffalo.edu:5001/api/";
+  static const String BASE_URL = "https://open-app-red.herokuapp.com/api/";
 
   static const String BUSINESS_SIGNUP = BASE_URL + "bussiness-sign-up";
 
   static const String SIGNUP = BASE_URL + "sign-up";
 
-  static const String SIGNIN = BASE_URL + "sign-in";
+  static const String SIGNIN = BASE_URL + "auth";
+
+  static const String CATEGORY = BASE_URL + "categories";
 
   static const String REQ_TEMP_PASS = "business_login";
 
@@ -15,6 +17,7 @@ class AppConstant {
   static const String USERS_GET_INFO = "business_login";
 
   //Business
+  static getBusinesses(bId) => BASE_URL + "categories/$bId/businesses";
 
   static getBusiness(bId) => BASE_URL + "business/$bId";
 

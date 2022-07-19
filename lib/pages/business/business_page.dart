@@ -138,7 +138,7 @@ class _BusinessPageState extends State<BusinessPage> {
   /// current date when the calendar displays the current month, and selects the
   /// first date of the month for rest of the months.
   void _onViewChanged(ViewChangedDetails visibleDatesChangedDetails) {
-    SchedulerBinding.instance?.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       final DateTime currentViewDate = visibleDatesChangedDetails
           .visibleDates[visibleDatesChangedDetails.visibleDates.length ~/ 2];
       if (Platform.isMacOS) {

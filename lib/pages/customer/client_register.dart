@@ -17,7 +17,8 @@ import 'dart:developer' as dev;
 class ClientRegister extends StatelessWidget {
   ClientRegister({Key? key}) : super(key: key);
   final _formKey = GlobalKey<FormState>();
-  final name = TextEditingController(text: "Atul Singh");
+  final firstName = TextEditingController(text: "Atul Arvind");
+  final lastName = TextEditingController(text: "Singh");
   final emailId = TextEditingController(text: "atulsingh158@gmail.com");
   final password = TextEditingController(text: "Iceage@123");
   final phone = TextEditingController(text: "7166179315");
@@ -93,8 +94,8 @@ class ClientRegister extends StatelessWidget {
             await http.post(Uri.parse('${AppConstant.SIGNUP}'), body: {
           "emailId": emailId.text,
           "password": password.text,
-          "firstname": name.text,
-          "lastName": "",
+          "firstname": firstName.text,
+          "lastName": lastName.text,
           "phoneNumber": phone.text
         });
         if (response.statusCode == 200) {
@@ -183,13 +184,14 @@ class ClientRegister extends StatelessWidget {
               SizedBox(
                 height: 20,
               ),
+              // First Name
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20.0,
                   vertical: 10,
                 ),
                 child: TextFormField(
-                  controller: name,
+                  controller: firstName,
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'Please enter your full name';
@@ -197,11 +199,32 @@ class ClientRegister extends StatelessWidget {
                     return null;
                   },
                   decoration: const InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: 'First Name',
                     border: OutlineInputBorder(),
                   ),
                 ),
               ),
+              // Last Name
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 10,
+                ),
+                child: TextFormField(
+                  controller: lastName,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter your full name';
+                    }
+                    return null;
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Last Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              // Email Id
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20.0,
@@ -221,6 +244,7 @@ class ClientRegister extends StatelessWidget {
                   ),
                 ),
               ),
+              // Password
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20.0,
@@ -241,6 +265,7 @@ class ClientRegister extends StatelessWidget {
                   ),
                 ),
               ),
+              // Phone Number
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20.0,

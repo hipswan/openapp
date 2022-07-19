@@ -125,105 +125,44 @@ class _TypeSelectionState extends State<TypeSelection> {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        vertical: 20.0,
+                        vertical: 10.0,
                       ),
-                      child: Row(
-                        children: [
-                          ChoiceChip(
-                            labelPadding: EdgeInsets.all(10),
-                            padding: EdgeInsets.all(10),
-                            selectedColor: Colors.redAccent,
-                            selectedShadowColor: Colors.grey,
-                            avatar: CircleAvatar(
-                              backgroundColor: Colors.grey.shade800,
-                              child: Text(
-                                'B',
-                                style: TextStyle(
-                                  color: thirdColor,
-                                  fontSize: 18,
-                                ),
-                              ),
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          padding: MaterialStateProperty.all(
+                            EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 20,
                             ),
-                            label: Text(
-                              'Business',
-                              style: TextStyle(
-                                color: _value == 0 ? thirdColor : Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            selected: _value == 0,
-                            onSelected: (bool selected) {
-                              setState(() {
-                                _value = (selected ? 0 : null)!;
-                              });
-                            },
                           ),
-                          Spacer(),
-                          ChoiceChip(
-                            labelPadding: EdgeInsets.all(10),
-                            padding: EdgeInsets.all(10),
-                            selectedColor: Colors.redAccent,
-                            labelStyle: homePageTextStyle,
-                            selectedShadowColor: Colors.blue,
-                            avatar: CircleAvatar(
-                              backgroundColor: Colors.grey.shade800,
-                              child: Text(
-                                'C',
-                                style: TextStyle(
-                                  color: thirdColor,
-                                  fontSize: 18,
-                                ),
-                              ),
+                          backgroundColor: MaterialStateProperty.all(
+                            Colors.redAccent,
+                          ),
+                          shadowColor: MaterialStateProperty.all(
+                            Colors.grey,
+                          ),
+                          shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            label: Text(
-                              'Customer',
-                              style: TextStyle(
-                                color: _value == 1 ? thirdColor : Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            selected: _value == 1,
-                            onSelected: (bool selected) {
-                              setState(
-                                () {
-                                  _value = (selected ? 1 : null)!;
-                                },
-                              );
-                            },
-                          )
-                        ],
+                          ),
+                        ),
+                        child: Text(
+                          'Get Started',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _value = 0;
+                          });
+                          Navigator.pushNamed(context, '/client_register');
+                        },
                       ),
                     ),
                     alreadyHaveAnAccount(context),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 20.0,
-                        ),
-                        child: FloatingActionButton(
-                          onPressed: () async {
-                            // Navigator.of(context).pop();
-                            if (_value == 0) {
-                              await prefs?.setInt('userType', _value);
-                              Navigator.of(context)
-                                  .pushNamed('/business_register');
-                            } else if (_value == 1) {
-                              await prefs?.setInt('userType', _value);
-                              Navigator.of(context)
-                                  .pushNamed('/client_register');
-                            }
-                          },
-                          child: Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.white,
-                          ),
-                          backgroundColor: HexColor('#143F6B'),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -231,6 +170,77 @@ class _TypeSelectionState extends State<TypeSelection> {
           ],
         ),
       ),
+    );
+  }
+
+  Row _selectType() {
+    return Row(
+      children: [
+        ChoiceChip(
+          labelPadding: EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
+          selectedColor: Colors.redAccent,
+          selectedShadowColor: Colors.grey,
+          avatar: CircleAvatar(
+            backgroundColor: Colors.grey.shade800,
+            child: Text(
+              'B',
+              style: TextStyle(
+                color: thirdColor,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          label: Text(
+            'Business',
+            style: TextStyle(
+              color: _value == 0 ? thirdColor : Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          selected: _value == 0,
+          onSelected: (bool selected) {
+            setState(() {
+              _value = (selected ? 0 : null)!;
+            });
+          },
+        ),
+        Spacer(),
+        ChoiceChip(
+          labelPadding: EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
+          selectedColor: Colors.redAccent,
+          labelStyle: homePageTextStyle,
+          selectedShadowColor: Colors.blue,
+          avatar: CircleAvatar(
+            backgroundColor: Colors.grey.shade800,
+            child: Text(
+              'C',
+              style: TextStyle(
+                color: thirdColor,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          label: Text(
+            'Customer',
+            style: TextStyle(
+              color: _value == 1 ? thirdColor : Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          selected: _value == 1,
+          onSelected: (bool selected) {
+            setState(
+              () {
+                _value = (selected ? 1 : null)!;
+              },
+            );
+          },
+        )
+      ],
     );
   }
 }

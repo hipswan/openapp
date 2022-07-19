@@ -30,7 +30,7 @@ class _ClientAppointmentState extends State<ClientAppointment> {
     if (await CheckConnectivity.checkInternet()) {
       try {
         var url =
-            'http://rxfarm91.cse.buffalo.edu:5001/api/appointments?uId=${currentClient!.id}';
+            'http://rxfarm91.cse.buffalo.edu:5001/api/appointments?uId=${currentCustomer!.id}';
         var response = await http.get(
           Uri.parse('$url'),
         );
@@ -74,7 +74,7 @@ class _ClientAppointmentState extends State<ClientAppointment> {
           serviceId,
         );
         var response = await http.get(Uri.parse('$url'), headers: {
-          'Authorization': 'Bearer ${currentClient?.token}',
+          'Authorization': 'Bearer ${currentCustomer?.token}',
         });
 
         if (response.statusCode == 200) {
@@ -100,7 +100,7 @@ class _ClientAppointmentState extends State<ClientAppointment> {
         var response = await http.get(
           Uri.parse('$url'),
           headers: {
-            'Authorization': 'Bearer ${currentClient?.token}',
+            'Authorization': 'Bearer ${currentCustomer?.token}',
           },
         );
 

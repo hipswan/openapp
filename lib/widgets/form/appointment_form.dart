@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/model/shop.dart';
 
 import '../../../model/business.dart';
 import '../../../model/service.dart';
@@ -14,18 +16,16 @@ import '../../../utility/appurl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 
+import '../../main.dart';
 import '../../pages/login_page.dart';
 
 class AppointmentForm extends StatefulWidget {
-  final Business selectedBusiness;
-  final List<Service> serviceList;
-  final List<Staff> staffList;
-  const AppointmentForm(
-      {Key? key,
-      required this.selectedBusiness,
-      required this.staffList,
-      required this.serviceList})
-      : super(key: key);
+  final Shop selectedBusiness;
+
+  const AppointmentForm({
+    Key? key,
+    required this.selectedBusiness,
+  }) : super(key: key);
 
   @override
   State<AppointmentForm> createState() => _AppointmentFormState();
@@ -49,90 +49,92 @@ class _AppointmentFormState extends State<AppointmentForm> {
   @override
   void initState() {
     // TODO: implement initState
-    staffDropDownList = widget.staffList.map<DropdownMenuItem<int>>((staff) {
-      return DropdownMenuItem(
-        child: Text(staff.firstName!),
-        value: staff.id,
-      );
-    }).toList();
+    // staffDropDownList = widget.staffList.map<DropdownMenuItem<int>>((staff) {
+    //   return DropdownMenuItem(
+    //     child: Text(staff.firstName!),
+    //     value: staff.id,
+    //   );
+    // }).toList();
 
-    serviceDropDownList =
-        widget.serviceList.map<DropdownMenuItem<int>>((service) {
-      return DropdownMenuItem<int>(
-        child: Text(service.serviceName!),
-        value: service.id,
-      );
-    }).toList();
+    // serviceDropDownList =
+    //     widget.serviceList.map<DropdownMenuItem<int>>((service) {
+    //   return DropdownMenuItem<int>(
+    //     child: Text(service.serviceName!),
+    //     value: service.id,
+    //   );
+    // }).toList();
+
     super.initState();
   }
 
-  Future postAppointment() async {
-    if (await CheckConnectivity.checkInternet()) {
-      try {
-        var body = {
-          "serviceId": serviceId,
-          "date": _date.text,
-          "startDateTime": _date.text,
-          "bId": widget.selectedBusiness.bId.toString(),
-          "uId": currentClient!.id.toString(),
-          "staffId": staffId,
-          "notes": _notes.text,
-        };
-        var url = 'http://rxfarm91.cse.buffalo.edu:5001/api/appointments/book';
+  // Future postAppointment() async {
+  //   if (await CheckConnectivity.checkInternet()) {
+  //     try {
+  //       var body = {
+  //         "serviceId": serviceId,
+  //         "date": _date.text,
+  //         "startDateTime": _date.text,
+  //         "bId": widget.selectedBusiness.bId.toString(),
+  //         "uId": currentCustomer!.id.toString(),
+  //         "staffId": staffId,
+  //         "notes": _notes.text,
+  //       };
+  //       var url = 'http://rxfarm91.cse.buffalo.edu:5001/api/appointments/book';
 
-        var response = await http.post(
-          Uri.parse('$url'),
-          body: body,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${currentClient?.token}',
-          },
-        );
+  //       var response = await http.post(
+  //         Uri.parse('$url'),
+  //         body: body,
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Authorization': 'Bearer ${prefs!.getString('token')}',
+  //         },
+  //       );
 
-        if (response.statusCode == 200 ||
-            response.statusCode == 201 ||
-            response.statusCode == 204) {
-          //  json.decode(response.body);
-          // dev.log('added/updated business location');
-          var parsedJson = json.decode(response.body);
-          return parsedJson;
-        } else {
-          throw Exception('Failed to fetch appointments');
-        }
-      } catch (e) {
-        throw Exception('Failed to connect to server');
-      }
-    } else {
-      throw Exception('Failed to connect to Intenet');
-    }
-  }
+  //       if (response.statusCode == 200 ||
+  //           response.statusCode == 201 ||
+  //           response.statusCode == 204) {
+  //         //  json.decode(response.body);
+  //         // dev.log('added/updated business location');
+  //         var parsedJson = json.decode(response.body);
+  //         return parsedJson;
+  //       } else {
+  //         throw Exception('Failed to fetch appointments');
+  //       }
+  //     } catch (e) {
+  //       throw Exception('Failed to connect to server');
+  //     }
+  //   } else {
+  //     throw Exception('Failed to connect to Intenet');
+  //   }
+  // }
 
-  Future getTimeAvaialbility(DateTime date) async {
-    if (await CheckConnectivity.checkInternet()) {
-      try {
-        var startDate = DateTime.now();
-        var url =
-            'http://rxfarm91.cse.buffalo.edu:5001/api/business?bId=${widget.selectedBusiness.bId}&startDate=${startDate}';
+  // Future getTimeAvaialbility(DateTime date) async {
+  //   if (await CheckConnectivity.checkInternet()) {
+  //     try {
+  //       var startDate = DateTime.now();
+  //       var url =
+  //           'http://rxfarm91.cse.buffalo.edu:5001/api/business?bId=${widget.selectedBusiness.bId}&startDate=${startDate}';
 
-        var response = await http.get(
-          Uri.parse('$url'),
-        );
+  //       var response = await http.get(
+  //         Uri.parse('$url'),
+  //       );
 
-        if (response.statusCode == 200) {
-          //  json.decode(response.body);
-          // dev.log('added/updated business location');
-          var parsedJson = json.decode(response.body);
-          return parsedJson;
-        } else {
-          throw Exception('Failed to fetch appointments');
-        }
-      } catch (e) {
-        throw Exception('Failed to connect to server');
-      }
-    } else {
-      throw Exception('Failed to connect to Intenet');
-    }
-  }
+  //       if (response.statusCode == 200) {
+  //         //  json.decode(response.body);
+  //         // dev.log('added/updated business location');
+  //         var parsedJson = json.decode(response.body);
+  //         return parsedJson;
+  //       } else {
+  //         throw Exception('Failed to fetch appointments');
+  //       }
+  //     } catch (e) {
+  //       throw Exception('Failed to connect to server');
+  //     }
+  //   } else {
+  //     throw Exception('Failed to connect to Intenet');
+  //   }
+  // }
+  FocusNode dateInputFocusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -173,12 +175,12 @@ class _AppointmentFormState extends State<AppointmentForm> {
                     currentFocus.unfocus();
                   }
                   if (_formKey.currentState!.validate()) {
-                    await postAppointment();
+                    // await postAppointment();
                     Navigator.pop(context);
                   }
                 },
                 child: Text(
-                  'Save',
+                  'Book',
                   style: TextStyle(
                     color: Colors.white,
                   ),
@@ -199,7 +201,7 @@ class _AppointmentFormState extends State<AppointmentForm> {
                     0.8,
                   ),
                   child: Text(
-                    'Saved to: /businessname',
+                    'Make an Appointment',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -209,6 +211,8 @@ class _AppointmentFormState extends State<AppointmentForm> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: DropdownButtonFormField<int>(
+                    validator: (value) =>
+                        value == null ? 'Please select a service' : null,
                     decoration: InputDecoration(
                       labelText: 'Service Name',
                       border: OutlineInputBorder(
@@ -224,22 +228,21 @@ class _AppointmentFormState extends State<AppointmentForm> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
                     controller: _date,
+                    focusNode: dateInputFocusNode,
+                    keyboardType: TextInputType.datetime,
                     onTap: () async {
+                      FocusScopeNode currentFocus = FocusScope.of(context);
+
                       final DateTime? pickedDate = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now(),
                         firstDate: DateTime(2015),
                         lastDate: DateTime(2050),
                       );
-                      _date.text = pickedDate.toString();
-                      var res = await getTimeAvaialbility(pickedDate!);
-                      _times = res[0]['availableAppointments']
-                          .map<DropdownMenuItem<String>>((time) {
-                        return DropdownMenuItem<String>(
-                          child: Text(time['time']),
-                          value: time['time'],
-                        );
-                      }).toList();
+                      _date.text = DateFormat.yMMMMEEEEd().format(pickedDate!);
+                      if (dateInputFocusNode.hasPrimaryFocus) {
+                        dateInputFocusNode.unfocus();
+                      }
                       setState(() {
                         // _availableStaff = res[0]['availableStaff'].map<DropdownMenuItem<String>>((staff) {
                         //   return DropdownMenuItem(
@@ -275,6 +278,8 @@ class _AppointmentFormState extends State<AppointmentForm> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: DropdownButtonFormField<int>(
+                    validator: (value) =>
+                        value == null ? 'Please select a staff' : null,
                     decoration: InputDecoration(
                       labelText: 'Staff Name',
                       border: OutlineInputBorder(

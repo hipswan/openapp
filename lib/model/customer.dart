@@ -1,37 +1,45 @@
 // To parse this JSON data, do
 //
-//     final client = clientFromJson(jsonString);
+//     final customer = customerFromJson(jsonString);
 
 import 'dart:convert';
 
 class Customer {
   Customer({
-    this.token,
     this.id,
-    this.emailId,
-    this.firstName,
-    this.lastName,
+    this.firstname,
+    this.lastname,
+    this.email,
+    this.role,
+    this.businessRequested,
+    this.token,
   });
 
-  String? token;
-  int? id;
-  String? emailId;
-  String? firstName;
-  String? lastName;
+  final String? id;
+  final String? firstname;
+  final String? lastname;
+  final String? email;
+  final String? role;
+  final bool? businessRequested;
+  final String? token;
 
   Customer copyWith({
+    String? id,
+    String? firstname,
+    String? lastname,
+    String? email,
+    String? role,
+    bool? businessRequested,
     String? token,
-    int? id,
-    String? emailId,
-    String? firstName,
-    String? lastName,
   }) =>
       Customer(
-        token: token ?? this.token,
         id: id ?? this.id,
-        emailId: emailId ?? this.emailId,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
+        firstname: firstname ?? this.firstname,
+        lastname: lastname ?? this.lastname,
+        email: email ?? this.email,
+        role: role ?? this.role,
+        businessRequested: businessRequested ?? this.businessRequested,
+        token: token ?? this.token,
       );
 
   factory Customer.fromRawJson(String str) =>
@@ -40,18 +48,22 @@ class Customer {
   String toRawJson() => json.encode(toJson());
 
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
+        id: json["user"]["id"],
+        firstname: json["user"]["firstname"],
+        lastname: json["user"]["lastname"],
+        email: json["user"]["email"],
+        role: json["user"]["role"],
+        businessRequested: json["user"]["businessRequested"],
         token: json["token"],
-        id: json["id"],
-        emailId: json["emailId"],
-        firstName: json["firstName"],
-        lastName: json["lastName"],
       );
 
   Map<String, dynamic> toJson() => {
-        "token": token,
         "id": id,
-        "emailId": emailId,
-        "firstName": firstName,
-        "lastName": lastName,
+        "firstname": firstname,
+        "lastname": lastname,
+        "email": email,
+        "role": role,
+        "businessRequested": businessRequested,
+        "token": token,
       };
 }

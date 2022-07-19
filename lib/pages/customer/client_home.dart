@@ -1,14 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:openapp/model/shop.dart';
+import 'package:openapp/widgets/user_drawer.dart';
+import '../../model/category.dart';
 import '../business/business_details.dart';
 import 'package:openapp/widgets/filter_search.dart';
 import 'package:openapp/widgets/more_filter.dart';
@@ -27,7 +32,8 @@ class ClientMap extends StatefulWidget {
   State<ClientMap> createState() => ClientMapState();
 }
 
-class ClientMapState extends State<ClientMap> {
+class ClientMapState extends State<ClientMap>
+    with AutomaticKeepAliveClientMixin {
   Completer<GoogleMapController> _controller = Completer();
   // For storing the current position
   Position? _currentPosition;
@@ -38,9 +44,10 @@ class ClientMapState extends State<ClientMap> {
   );
 
   var businessCategory = [
-    'Restaurant',
+    'Doctor',
     'Cafe',
   ];
+  ScaffoldState _scaffoldState = ScaffoldState();
 
   TextEditingController startAddressController = TextEditingController();
   // Object for PolylinePoints
@@ -70,7 +77,14 @@ class ClientMapState extends State<ClientMap> {
     },
   ];
 
-  var listOfBusiness = [];
+  List<Shop> listOfBusiness = [];
+
+  DraggableScrollableController _draggableScrollableController =
+      DraggableScrollableController();
+
+  ValueNotifier<Set<Marker>> markers = ValueNotifier(Set());
+
+  var currentCategoryID;
 
   TextEditingController _search = TextEditingController();
 
@@ -80,11 +94,31 @@ class ClientMapState extends State<ClientMap> {
 
   initState() {
     super.initState();
-    showSearch = true;
-    _getCurrentLocation();
+    reqPermission().then((value) {
+      if (value)
+        _getCurrentLocation();
+      else
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Permission Denied"),
+            content: Text("Please enable location permission"),
+            actions: <Widget>[
+              ElevatedButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          ),
+        );
+    });
+
+    // showSearch = true;
   }
 
-  Future<List<Business>> getBusinessList() async {
+  Future<List<Shop>> getBusinessList() async {
     if (await CheckConnectivity.checkInternet()) {
       try {
         // var body = {
@@ -92,10 +126,7 @@ class ClientMapState extends State<ClientMap> {
         //   "lat": _position?.latitude.toString(),
         //   "long": _position?.longitude.toString(),
         // };
-        var startDate = DateTime.now();
-        var timeUtc = startDate.toUtc();
-        var url =
-            'http://rxfarm91.cse.buffalo.edu:5001/api/business?startDate=${startDate.toIso8601String()}';
+        var url = AppConstant.getBusinesses(currentCategoryID.toString());
         var response = await http.get(
           Uri.parse('$url'),
         );
@@ -104,8 +135,66 @@ class ClientMapState extends State<ClientMap> {
           //  json.decode(response.body);
           dev.log('added/updated business location');
           var parsedJson = json.decode(response.body);
+          List<Shop> shopList =
+              parsedJson.map<Shop>((shop) => Shop.fromJson(shop)).toList();
+
+          markers.value = Set<Marker>.from(listOfBusiness.map<Marker>((shop) {
+            // if (shop.location!.coordinates![0] > maxLatitude) {
+            //   maxLatitude = shop.location!.coordinates![0];
+            // }
+            // if (shop.location!.coordinates![0] < minLatitude) {
+            //   minLatitude = shop.location!.coordinates![0];
+            // }
+            // if (shop.location!.coordinates![1] > maxLongitude) {
+            //   maxLongitude = shop.location!.coordinates![1];
+            // }
+            // if (shop.location!.coordinates![1] < minLongitude) {
+            //   minLongitude = shop.location!.coordinates![1];
+            // }
+            return Marker(
+              markerId: MarkerId(shop.id.toString()),
+              position: LatLng(shop.location!.coordinates![1],
+                  shop.location!.coordinates![0]),
+              infoWindow: InfoWindow(
+                title: shop.name,
+                snippet: shop.location!.formattedAddress,
+              ),
+              onTap: () {},
+            );
+          }));
+
+          return shopList;
+        } else {
+          throw Exception('Failed to update business location');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to server');
+      }
+    } else {
+      throw Exception('Failed to connect to Intenet');
+    }
+  }
+
+  Future<List<Category>> getBusinessCategory() async {
+    if (await CheckConnectivity.checkInternet()) {
+      try {
+        // var body = {
+        //   "bId": currentBusiness?.bId.toString(),
+        //   "lat": _position?.latitude.toString(),
+        //   "long": _position?.longitude.toString(),
+        // };
+
+        var url = AppConstant.CATEGORY;
+        var response = await http.get(
+          Uri.parse('$url'),
+        );
+
+        if (response.statusCode == 200) {
+          //  json.decode(response.body);
+          dev.log('added/updated business category');
+          var parsedJson = json.decode(response.body);
           return parsedJson
-              .map<Business>((json) => Business.fromJson(json))
+              .map<Category>((json) => Category.fromJson(json))
               .toList();
         } else {
           throw Exception('Failed to update business location');
@@ -128,6 +217,26 @@ class ClientMapState extends State<ClientMap> {
   );
 
   // Create the polylines for showing the route between two places
+  // Ask permission from device
+  Future<bool> reqPermission() async {
+    bool isLocationServiceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (isLocationServiceEnabled) {
+      LocationPermission locationPermision =
+          await GeolocatorPlatform.instance.checkPermission();
+      if (locationPermision == LocationPermission.denied ||
+          locationPermision == LocationPermission.deniedForever ||
+          locationPermision == LocationPermission.unableToDetermine) {
+        await GeolocatorPlatform.instance.requestPermission();
+        return await GeolocatorPlatform.instance.checkPermission() ==
+                LocationPermission.always ||
+            await GeolocatorPlatform.instance.checkPermission() ==
+                LocationPermission.whileInUse;
+      } else {
+        return true;
+      }
+    }
+    return false;
+  }
 
   _createPolylines(
     double startLatitude,
@@ -230,15 +339,16 @@ class ClientMapState extends State<ClientMap> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: new Scaffold(
+        drawer: UserDrawer(),
         key: _scaffoldKey,
         resizeToAvoidBottomInset: false,
-        body: FutureBuilder<List<Business>>(
-            future: getBusinessList(),
+        body: FutureBuilder<List<Category>>(
+            future: getBusinessCategory(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                var listOfBusiness = snapshot.data;
+                var listOfCategory = snapshot.data;
 
-                return listOfBusiness!.isEmpty
+                return listOfCategory!.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -254,43 +364,24 @@ class ClientMapState extends State<ClientMap> {
                       )
                     : Stack(
                         children: [
-                          AbsorbPointer(
-                            absorbing: showSearch,
-                            child: GoogleMap(
+                          ValueListenableBuilder<Set<Marker>>(
+                            valueListenable: markers,
+                            builder: (context, value, child) => GoogleMap(
                               mapType: MapType.normal,
                               initialCameraPosition: _kGooglePlex ?? _kLake,
+                              markers: value,
                               onMapCreated: (GoogleMapController controller) {
                                 _controller.complete(controller);
                               },
-                              polylines: Set<Polyline>.of(polylines.values),
-
-                              markers: businessList
-                                  .map(
-                                    (business) => Marker(
-                                      markerId:
-                                          MarkerId(business["title"] as String),
-                                      infoWindow: InfoWindow(
-                                        title: business["title"] as String,
-                                        snippet:
-                                            business["description"] as String,
-                                      ),
-                                      position: LatLng(
-                                        business["latitude"] as double,
-                                        business["longitude"] as double,
-                                      ),
-                                    ),
-                                  )
-                                  .toSet(),
-                              // myLocationButtonEnabled: true,
+                              onTap: (LatLng latLng) {},
                               myLocationEnabled: true,
-                              zoomControlsEnabled: false,
-                              compassEnabled: false,
+                              myLocationButtonEnabled: false,
                             ),
                           ),
                           showSearch
                               ? DraggableScrollableSheet(
                                   initialChildSize: 0.5,
-                                  minChildSize: 0.3,
+                                  minChildSize: 0.1,
                                   maxChildSize: 0.8,
                                   builder:
                                       (container, _scrollSheetController) =>
@@ -326,250 +417,323 @@ class ClientMapState extends State<ClientMap> {
                                           height: 20,
                                         ),
                                         Expanded(
-                                          child: ListView(
-                                            controller: _scrollSheetController,
-                                            children: [
-                                              ...List.generate(
-                                                listOfBusiness.length,
-                                                (index) => Material(
-                                                  key: ValueKey(index),
-                                                  child: InkWell(
-                                                    splashColor: secondaryColor,
-                                                    onTap: () async {
-                                                      await Future.delayed(
-                                                        Duration(
-                                                          milliseconds: 200,
-                                                        ),
-                                                      );
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              BusinessDetail(
-                                                            selectedBusiness:
-                                                                listOfBusiness[
-                                                                    index],
+                                          child: FutureBuilder<List<Shop>>(
+                                            future: getBusinessList(),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.hasData) {
+                                                listOfBusiness = snapshot.data!;
+
+                                                SchedulerBinding.instance
+                                                    .addPostFrameCallback(
+                                                        (timeStamp) {
+                                                  var maxLatitude = -90.0;
+                                                  var maxLongitude = -180.0;
+                                                  var minLatitude = 90.0;
+                                                  var minLongitude = 180.0;
+                                                  listOfBusiness
+                                                      .forEach((business) {
+                                                    maxLatitude = max(
+                                                        business.location!
+                                                            .coordinates![1],
+                                                        maxLatitude);
+
+                                                    maxLongitude = max(
+                                                        business.location!
+                                                            .coordinates![0],
+                                                        maxLongitude);
+
+                                                    minLatitude = min(
+                                                        business.location!
+                                                            .coordinates![1],
+                                                        minLatitude);
+
+                                                    minLongitude = min(
+                                                        business.location!
+                                                            .coordinates![0],
+                                                        minLongitude);
+                                                  });
+                                                  _controller.future
+                                                      .then((controller) {
+                                                    controller.animateCamera(
+                                                      CameraUpdate
+                                                          .newCameraPosition(
+                                                        CameraPosition(
+                                                          target: LatLng(
+                                                            maxLatitude -
+                                                                ((maxLatitude
+                                                                            .abs() -
+                                                                        minLatitude
+                                                                            .abs()) /
+                                                                    2),
+                                                            maxLongitude -
+                                                                ((maxLongitude
+                                                                            .abs() -
+                                                                        minLongitude
+                                                                            .abs()) /
+                                                                    2),
                                                           ),
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: Container(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                        horizontal: 20.0,
-                                                      ),
-                                                      margin: EdgeInsets.only(
-                                                        bottom: 10.0,
-                                                        left: 10.0,
-                                                        right: 10.0,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: thirdColor
-                                                            .withOpacity(
-                                                          0.6,
-                                                        ),
-                                                        border: Border.all(
-                                                          color: secondaryColor,
-                                                          width: 0.5,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                          10,
+                                                          zoom: 10.0,
                                                         ),
                                                       ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                EdgeInsets.only(
-                                                              top: 20,
+                                                    );
+                                                  });
+                                                });
+                                                return ListView(
+                                                  controller:
+                                                      _scrollSheetController,
+                                                  children: [
+                                                    ...List.generate(
+                                                      listOfBusiness.length,
+                                                      (index) => Material(
+                                                        key: ValueKey(index),
+                                                        child: InkWell(
+                                                          splashColor:
+                                                              secondaryColor,
+                                                          onTap: () async {
+                                                            await Future
+                                                                .delayed(
+                                                              Duration(
+                                                                milliseconds:
+                                                                    200,
+                                                              ),
+                                                            );
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                builder:
+                                                                    (context) =>
+                                                                        BusinessDetail(
+                                                                  selectedBusiness:
+                                                                      listOfBusiness[
+                                                                          index],
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                          child: Container(
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                              horizontal: 20.0,
                                                             ),
-                                                            child: Row(
+                                                            margin:
+                                                                EdgeInsets.only(
+                                                              bottom: 10.0,
+                                                              left: 10.0,
+                                                              right: 10.0,
+                                                            ),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: thirdColor
+                                                                  .withOpacity(
+                                                                0.6,
+                                                              ),
+                                                              border:
+                                                                  Border.all(
+                                                                color:
+                                                                    secondaryColor,
+                                                                width: 0.5,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                10,
+                                                              ),
+                                                            ),
+                                                            child: Column(
                                                               crossAxisAlignment:
                                                                   CrossAxisAlignment
                                                                       .start,
                                                               children: [
-                                                                ClipRRect(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                    10,
+                                                                Padding(
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .only(
+                                                                    top: 20,
                                                                   ),
-                                                                  child:
-                                                                      Container(
-                                                                    width: 125,
-                                                                    child: listOfBusiness[index]
-                                                                            .image1!
-                                                                            .isEmpty
-                                                                        ? Image
-                                                                            .asset(
-                                                                            'assets/images/icons/open_app.png',
-                                                                            fit:
-                                                                                BoxFit.cover,
-                                                                          )
-                                                                        : CachedNetworkImage(
-                                                                            imageUrl:
-                                                                                '${AppConstant.PICTURE_ASSET_PATH}/${listOfBusiness[index].image1}',
-                                                                            errorWidget: (context, error, errorDynamic) =>
-                                                                                Image.asset('assets/images/icons/open_app.png'),
-                                                                            fit:
-                                                                                BoxFit.cover,
-                                                                          ),
-                                                                  ),
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 20,
-                                                                ),
-                                                                Expanded(
-                                                                  child: Column(
+                                                                  child: Row(
                                                                     crossAxisAlignment:
                                                                         CrossAxisAlignment
                                                                             .start,
                                                                     children: [
-                                                                      Text(
-                                                                        listOfBusiness[index].bName
-                                                                            as String,
-                                                                        style:
-                                                                            TextStyle(
-                                                                          fontSize:
-                                                                              20,
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
+                                                                      ClipRRect(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                          10,
+                                                                        ),
+                                                                        child:
+                                                                            Container(
+                                                                          width:
+                                                                              125,
+                                                                          child: listOfBusiness[index].images![0].isEmpty
+                                                                              ? Image.asset(
+                                                                                  'assets/images/icons/open_app.png',
+                                                                                  fit: BoxFit.cover,
+                                                                                )
+                                                                              : CachedNetworkImage(
+                                                                                  imageUrl: '${listOfBusiness[index].images![0]}',
+                                                                                  errorWidget: (context, error, errorDynamic) => Image.asset('assets/images/icons/open_app.png'),
+                                                                                  fit: BoxFit.cover,
+                                                                                ),
                                                                         ),
                                                                       ),
-                                                                      Text(
-                                                                        'Type: ${listOfBusiness[index].bType as String}',
-                                                                        strutStyle:
-                                                                            StrutStyle(
-                                                                          fontSize:
-                                                                              20,
+                                                                      SizedBox(
+                                                                        width:
+                                                                            20,
+                                                                      ),
+                                                                      Expanded(
+                                                                        child:
+                                                                            Column(
+                                                                          crossAxisAlignment:
+                                                                              CrossAxisAlignment.start,
+                                                                          children: [
+                                                                            Text(
+                                                                              listOfBusiness[index].name as String,
+                                                                              style: TextStyle(
+                                                                                fontSize: 20,
+                                                                                fontWeight: FontWeight.bold,
+                                                                              ),
+                                                                            ),
+                                                                            Text(
+                                                                              'Type: ${listOfBusiness[index].category as String}',
+                                                                              strutStyle: StrutStyle(
+                                                                                fontSize: 20,
+                                                                              ),
+                                                                              style: TextStyle(
+                                                                                fontSize: 16,
+                                                                              ),
+                                                                            ),
+                                                                            Text(
+                                                                              'Open: Closes 7pm',
+                                                                              strutStyle: StrutStyle(
+                                                                                fontSize: 20,
+                                                                              ),
+                                                                              style: TextStyle(
+                                                                                fontSize: 16,
+                                                                              ),
+                                                                            ),
+                                                                          ],
                                                                         ),
-                                                                        style:
-                                                                            TextStyle(
-                                                                          fontSize:
+                                                                      )
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .symmetric(
+                                                                    vertical:
+                                                                        10.0,
+                                                                  ),
+                                                                  child: Row(
+                                                                    children: [
+                                                                      ActionChip(
+                                                                        backgroundColor:
+                                                                            secondaryColor,
+                                                                        avatar:
+                                                                            Icon(
+                                                                          Icons
+                                                                              .call,
+                                                                          size:
                                                                               16,
+                                                                          color:
+                                                                              thirdColor,
+                                                                        ),
+                                                                        elevation:
+                                                                            3,
+                                                                        label:
+                                                                            Text(
+                                                                          'Call',
+                                                                          style:
+                                                                              TextStyle(
+                                                                            color:
+                                                                                thirdColor,
+                                                                            fontSize:
+                                                                                16,
+                                                                          ),
+                                                                        ),
+                                                                        onPressed:
+                                                                            () {},
+                                                                      ),
+                                                                      Spacer(),
+                                                                      ActionChip(
+                                                                        backgroundColor:
+                                                                            secondaryColor,
+                                                                        onPressed:
+                                                                            () {},
+                                                                        avatar:
+                                                                            Icon(
+                                                                          Icons
+                                                                              .directions,
+                                                                          size:
+                                                                              16,
+                                                                          color:
+                                                                              thirdColor,
+                                                                        ),
+                                                                        label:
+                                                                            Text(
+                                                                          'Directions',
+                                                                          style:
+                                                                              TextStyle(
+                                                                            color:
+                                                                                thirdColor,
+                                                                            fontSize:
+                                                                                16,
+                                                                          ),
                                                                         ),
                                                                       ),
-                                                                      Text(
-                                                                        'Open: Closes 7pm',
-                                                                        strutStyle:
-                                                                            StrutStyle(
-                                                                          fontSize:
-                                                                              20,
-                                                                        ),
-                                                                        style:
-                                                                            TextStyle(
-                                                                          fontSize:
+                                                                      Spacer(),
+                                                                      ActionChip(
+                                                                        backgroundColor:
+                                                                            secondaryColor,
+                                                                        onPressed:
+                                                                            () {
+                                                                          Share.share(
+                                                                              'check out my website http://rxfarm91.cse.buffalo.edu:500/',
+                                                                              subject: 'Reserve your favourite spot in an instance!');
+                                                                        },
+                                                                        avatar:
+                                                                            Icon(
+                                                                          Icons
+                                                                              .share,
+                                                                          size:
                                                                               16,
+                                                                          color:
+                                                                              thirdColor,
+                                                                        ),
+                                                                        label:
+                                                                            Text(
+                                                                          'Share',
+                                                                          style:
+                                                                              TextStyle(
+                                                                            color:
+                                                                                thirdColor,
+                                                                            fontSize:
+                                                                                16,
+                                                                          ),
                                                                         ),
                                                                       ),
                                                                     ],
                                                                   ),
-                                                                )
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                              vertical: 10.0,
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                ActionChip(
-                                                                  backgroundColor:
-                                                                      secondaryColor,
-                                                                  avatar: Icon(
-                                                                    Icons.call,
-                                                                    size: 16,
-                                                                    color:
-                                                                        thirdColor,
-                                                                  ),
-                                                                  elevation: 3,
-                                                                  label: Text(
-                                                                    'Call',
-                                                                    style:
-                                                                        TextStyle(
-                                                                      color:
-                                                                          thirdColor,
-                                                                      fontSize:
-                                                                          16,
-                                                                    ),
-                                                                  ),
-                                                                  onPressed:
-                                                                      () {},
-                                                                ),
-                                                                Spacer(),
-                                                                ActionChip(
-                                                                  backgroundColor:
-                                                                      secondaryColor,
-                                                                  onPressed:
-                                                                      () {},
-                                                                  avatar: Icon(
-                                                                    Icons
-                                                                        .directions,
-                                                                    size: 16,
-                                                                    color:
-                                                                        thirdColor,
-                                                                  ),
-                                                                  label: Text(
-                                                                    'Directions',
-                                                                    style:
-                                                                        TextStyle(
-                                                                      color:
-                                                                          thirdColor,
-                                                                      fontSize:
-                                                                          16,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                Spacer(),
-                                                                ActionChip(
-                                                                  backgroundColor:
-                                                                      secondaryColor,
-                                                                  onPressed:
-                                                                      () {
-                                                                    Share.share(
-                                                                        'check out my website http://rxfarm91.cse.buffalo.edu:500/',
-                                                                        subject:
-                                                                            'Reserve your favourite spot in an instance!');
-                                                                  },
-                                                                  avatar: Icon(
-                                                                    Icons.share,
-                                                                    size: 16,
-                                                                    color:
-                                                                        thirdColor,
-                                                                  ),
-                                                                  label: Text(
-                                                                    'Share',
-                                                                    style:
-                                                                        TextStyle(
-                                                                      color:
-                                                                          thirdColor,
-                                                                      fontSize:
-                                                                          16,
-                                                                    ),
-                                                                  ),
                                                                 ),
                                                               ],
                                                             ),
                                                           ),
-                                                        ],
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ]..add(
-                                                SizedBox(
-                                                  height: 100,
-                                                ),
-                                              ),
+                                                  ]..add(
+                                                      SizedBox(
+                                                        height: 100,
+                                                      ),
+                                                    ),
+                                                );
+                                              } else {
+                                                return Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                );
+                                              }
+                                            },
                                           ),
                                         ),
                                       ],
@@ -593,63 +757,120 @@ class ClientMapState extends State<ClientMap> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Theme(
-                                    data: Theme.of(context).copyWith(
-                                        inputDecorationTheme:
-                                            InputDecorationTheme(
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          50.0,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: secondaryColor,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          50.0,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: secondaryColor,
-                                        ),
-                                      ),
-                                      errorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          50.0,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      border: OutlineInputBorder(),
-                                    )),
-                                    child: TextField(
-                                      controller: _search,
-                                      decoration: InputDecoration(
-                                        hintText: "Enter your starting address",
-                                        suffixIcon: showSearch
-                                            ? IconButton(
-                                                onPressed: () {
-                                                  _search.clear();
-                                                  setState(() {
-                                                    showSearch = false;
-                                                  });
-                                                },
-                                                icon: Icon(
-                                                  Icons.close,
-                                                  color: secondaryColor,
-                                                ),
-                                              )
-                                            : null,
-                                        fillColor: Colors.white,
-                                        filled: true,
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            50.0,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            shape: MaterialStateProperty.all(
+                                              CircleBorder(),
+                                            ),
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                              secondaryColor,
+                                            ),
+                                            padding: MaterialStateProperty.all(
+                                              EdgeInsets.all(
+                                                14.0,
+                                              ),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            _scaffoldKey.currentState!
+                                                .openDrawer();
+                                          },
+                                          child: Icon(
+                                            Icons.menu,
+                                            color: thirdColor,
                                           ),
                                         ),
                                       ),
-                                    ),
+                                      Expanded(
+                                        child: Theme(
+                                          data: Theme.of(context).copyWith(
+                                              inputDecorationTheme:
+                                                  InputDecorationTheme(
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                50.0,
+                                              ),
+                                              borderSide: BorderSide(
+                                                color: secondaryColor,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                50.0,
+                                              ),
+                                              borderSide: BorderSide(
+                                                color: secondaryColor,
+                                              ),
+                                            ),
+                                            errorBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                50.0,
+                                              ),
+                                              borderSide: BorderSide(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                            border: OutlineInputBorder(),
+                                          )),
+                                          child: TextField(
+                                            controller: _search,
+                                            decoration: InputDecoration(
+                                              hintText:
+                                                  "Enter your starting address",
+                                              suffixIcon: showSearch
+                                                  ? IconButton(
+                                                      onPressed: () {
+                                                        _search.clear();
+                                                        _controller.future
+                                                            .then((controller) {
+                                                          controller
+                                                              .animateCamera(
+                                                            CameraUpdate
+                                                                .newCameraPosition(
+                                                              CameraPosition(
+                                                                target: LatLng(
+                                                                  _currentPosition!
+                                                                      .latitude,
+                                                                  _currentPosition!
+                                                                      .longitude,
+                                                                ),
+                                                                zoom: 18.0,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        });
+
+                                                        setState(() {
+                                                          showSearch = false;
+                                                        });
+                                                      },
+                                                      icon: Icon(
+                                                        Icons.close,
+                                                        color: secondaryColor,
+                                                      ),
+                                                    )
+                                                  : null,
+                                              fillColor: Colors.white,
+                                              filled: true,
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                  50.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   Container(
                                     height: 70.0,
@@ -675,8 +896,9 @@ class ClientMapState extends State<ClientMap> {
                                                     Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              FilterSearch()),
+                                                        builder: (context) =>
+                                                            FilterSearch(),
+                                                      ),
                                                     );
                                                   },
                                                 ),
@@ -1041,7 +1263,7 @@ class ClientMapState extends State<ClientMap> {
                                             scrollDirection: Axis.horizontal,
                                             children: [
                                               ...List.generate(
-                                                businessCategory.length,
+                                                listOfCategory.length,
                                                 (index) => Padding(
                                                   padding:
                                                       const EdgeInsets.only(
@@ -1055,15 +1277,18 @@ class ClientMapState extends State<ClientMap> {
                                                     ),
                                                     elevation: 3.0,
                                                     label: Text(
-                                                      businessCategory[index],
+                                                      listOfCategory[index]
+                                                              .title ??
+                                                          "",
                                                       style: TextStyle(
                                                         color: Colors.black,
                                                       ),
                                                     ),
                                                     onPressed: () {
                                                       _search.text =
-                                                          businessCategory[
-                                                              index];
+                                                          listOfCategory[index]
+                                                                  .title ??
+                                                              "";
                                                       FocusScopeNode
                                                           currentFocus =
                                                           FocusScope.of(
@@ -1078,6 +1303,10 @@ class ClientMapState extends State<ClientMap> {
                                                       setState(() {
                                                         showSearch =
                                                             !showSearch;
+                                                        currentCategoryID =
+                                                            listOfCategory[
+                                                                    index]
+                                                                .id;
                                                       });
                                                     },
                                                   ),
@@ -1275,28 +1504,29 @@ class ClientMapState extends State<ClientMap> {
                 );
               }
             }),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            await Future.delayed(
-              Duration(
-                milliseconds: 200,
-              ),
-            );
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => BusinessDetail(
-            //       selectedBusiness: listOfBusiness[index],
-            //     ),
-            //   ),
-            // );
-          },
-          backgroundColor: secondaryColor,
-          child: Icon(
-            Icons.calendar_today,
-            color: thirdColor,
-          ),
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () async {
+        //     await Future.delayed(
+        //       Duration(
+        //         milliseconds: 200,
+        //       ),
+        //     );
+        //     // Navigator.push(
+        //     //   context,
+        //     //   MaterialPageRoute(
+        //     //     builder: (context) => BusinessDetail(
+        //     //       selectedBusiness: listOfBusiness[index],
+        //     //     ),
+        //     //   ),
+        //     // );
+        //   },
+        //   backgroundColor: secondaryColor,
+        //   child: Icon(
+        //     Icons.list,
+        //     size: 32,
+        //     color: thirdColor,
+        //   ),
+        // ),
       ),
     );
   }
@@ -1313,4 +1543,8 @@ class ClientMapState extends State<ClientMap> {
     // _controller.dispose();
     _pageViewController.dispose();
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

@@ -1,11 +1,15 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/model/shop.dart';
+import 'package:openapp/widgets/hex_color.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../model/business.dart';
 import '../../utility/Network/network_connectivity.dart';
@@ -15,7 +19,7 @@ import '../../pages/business/business_home.dart';
 import 'package:http/http.dart' as http;
 
 class BusinessOverview extends StatefulWidget {
-  final Business selectedBusiness;
+  final Shop selectedBusiness;
   const BusinessOverview({Key? key, required this.selectedBusiness})
       : super(key: key);
 
@@ -52,81 +56,81 @@ class _BusinessOverviewState extends State<BusinessOverview> {
   };
 
   var _daysOperating;
-  Future getBusinessHours() async {
-    if (await CheckConnectivity.checkInternet()) {
-      try {
-        var url = AppConstant.getBusinesssHourById(widget.selectedBusiness.bId);
-        var response = await http.get(Uri.parse('$url'), headers: {
-          // 'Authorization': 'Bearer ${currentBusiness?.token}',
-        });
+  // Future getBusinessHours() async {
+  //   if (await CheckConnectivity.checkInternet()) {
+  //     try {
+  //       var url = AppConstant.getBusinesssHourById(widget.selectedBusiness.bId);
+  //       var response = await http.get(Uri.parse('$url'), headers: {
+  //         // 'Authorization': 'Bearer ${currentBusiness?.token}',
+  //       });
 
-        if (response.statusCode == 200) {
-          //  json.decode(response.body);
-          return json.decode(response.body);
-        } else {
-          throw Exception('Failed to fetch business hours');
-        }
-      } catch (e) {
-        throw Exception('Failed to connect to server');
-      }
-    } else {
-      throw Exception('Failed to connect to internet');
-    }
-  }
+  //       if (response.statusCode == 200) {
+  //         //  json.decode(response.body);
+  //         return json.decode(response.body);
+  //       } else {
+  //         throw Exception('Failed to fetch business hours');
+  //       }
+  //     } catch (e) {
+  //       throw Exception('Failed to connect to server');
+  //     }
+  //   } else {
+  //     throw Exception('Failed to connect to internet');
+  //   }
+  // }
 
-  Future<String> getOverviewDetails() async {
-    _daysOperating = await getBusinessHours();
-    if (_daysOperating == null || (_daysOperating as List).isEmpty) {
-      _daysOperating = [
-        {
-          "day": 0,
-          "startTime": "--:--",
-          "endTime": "--:--",
-          "isWorking": false
-        },
-        {
-          "day": 0,
-          "startTime": "--:--",
-          "endTime": "--:--",
-          "isWorking": false
-        },
-        {
-          "day": 0,
-          "startTime": "--:--",
-          "endTime": "--:--",
-          "isWorking": false
-        },
-        {
-          "day": 0,
-          "startTime": "--:--",
-          "endTime": "--:--",
-          "isWorking": false
-        },
-        {
-          "day": 0,
-          "startTime": "--:--",
-          "endTime": "--:--",
-          "isWorking": false
-        },
-        {
-          "day": 0,
-          "startTime": "--:--",
-          "endTime": "--:--",
-          "isWorking": false
-        },
-        {
-          "day": 0,
-          "startTime": "--:--",
-          "endTime": "--:--",
-          "isWorking": false
-        },
-      ];
-    }
-    address = widget.selectedBusiness.lat!.isEmpty
-        ? 'business location not updated'
-        : await _getAddress();
-    return "done";
-  }
+  // Future<String> getOverviewDetails() async {
+  //   _daysOperating = await getBusinessHours();
+  //   if (_daysOperating == null || (_daysOperating as List).isEmpty) {
+  //     _daysOperating = [
+  //       {
+  //         "day": 0,
+  //         "startTime": "--:--",
+  //         "endTime": "--:--",
+  //         "isWorking": false
+  //       },
+  //       {
+  //         "day": 0,
+  //         "startTime": "--:--",
+  //         "endTime": "--:--",
+  //         "isWorking": false
+  //       },
+  //       {
+  //         "day": 0,
+  //         "startTime": "--:--",
+  //         "endTime": "--:--",
+  //         "isWorking": false
+  //       },
+  //       {
+  //         "day": 0,
+  //         "startTime": "--:--",
+  //         "endTime": "--:--",
+  //         "isWorking": false
+  //       },
+  //       {
+  //         "day": 0,
+  //         "startTime": "--:--",
+  //         "endTime": "--:--",
+  //         "isWorking": false
+  //       },
+  //       {
+  //         "day": 0,
+  //         "startTime": "--:--",
+  //         "endTime": "--:--",
+  //         "isWorking": false
+  //       },
+  //       {
+  //         "day": 0,
+  //         "startTime": "--:--",
+  //         "endTime": "--:--",
+  //         "isWorking": false
+  //       },
+  //     ];
+  //   }
+  //   address = widget.selectedBusiness.lat!.isEmpty
+  //       ? 'business location not updated'
+  //       : await _getAddress();
+  //   return "done";
+  // }
 
   @override
   void initState() {
@@ -135,26 +139,88 @@ class _BusinessOverviewState extends State<BusinessOverview> {
     super.initState();
   }
 
-  Future<String> _getAddress() async {
-    try {
-      // Places are retrieved using the coordinates
-      List<Placemark> p = await placemarkFromCoordinates(
-          double.parse(widget.selectedBusiness.lat!),
-          double.parse(widget.selectedBusiness.long!));
+  // Future<String> _getAddress() async {
+  //   try {
+  //     // Places are retrieved using the coordinates
+  //     List<Placemark> p = await placemarkFromCoordinates(
+  //         double.parse(widget.selectedBusiness.lat!),
+  //         double.parse(widget.selectedBusiness.long!));
 
-      // Taking the most probable result
-      Placemark place = p[0];
+  //     // Taking the most probable result
+  //     Placemark place = p[0];
 
-      // Structuring the address
-      return "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
-    } catch (e) {
-      print(e);
-      return "{address unavailable}";
-    }
+  //     // Structuring the address
+  //     return "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+  //   } catch (e) {
+  //     print(e);
+  //     return "{address unavailable}";
+  //   }
+  // }
+
+  Future<String> getOverviewDetails() async {
+    return "true";
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget shopReviews = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: 20.0,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            '3.8',
+            style: TextStyle(
+              fontSize: 14.0,
+              color: HexColor(
+                '#757575',
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 5.0,
+          ),
+          Text(
+            '\u2B50\u2B50\u2B50\u2B50\u2B50',
+            style: TextStyle(
+              fontSize: 14.0,
+              color: HexColor('#757575'),
+            ),
+          ),
+          SizedBox(
+            width: 5.0,
+          ),
+          Text.rich(
+            TextSpan(
+              text: '129 ',
+              style: TextStyle(
+                color: HexColor('#3980EA'),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+              children: <TextSpan>[
+                TextSpan(
+                  text: 'reviews ',
+                  style: TextStyle(
+                    color: HexColor('#3980EA'),
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+            strutStyle: const StrutStyle(
+              fontFamily: 'Serif',
+              fontSize: 18,
+              forceStrutHeight: true,
+            ),
+          ),
+        ],
+      ),
+    );
+
     return FutureBuilder<String>(
         future: getOverviewDetails(),
         builder: (context, snapshot) {
@@ -174,14 +240,13 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                       borderRadius: BorderRadius.circular(
                         10,
                       ),
-                      child: widget.selectedBusiness.image1!.isEmpty
+                      child: widget.selectedBusiness.images![0].isEmpty
                           ? Image.asset(
                               'assets/images/icons/open_app.png',
                               fit: BoxFit.cover,
                             )
                           : CachedNetworkImage(
-                              imageUrl:
-                                  '${AppConstant.PICTURE_ASSET_PATH}/${widget.selectedBusiness.image1}',
+                              imageUrl: '${widget.selectedBusiness.images![0]}',
                               errorWidget: (context, error, errorDynamic) =>
                                   Image.asset(
                                       'assets/images/icons/open_app.png'),
@@ -190,46 +255,53 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                     ),
                   ),
                 ),
+                //Name
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 20.0,
                   ),
                   child: Text(
-                    widget.selectedBusiness.bName ?? "",
+                    widget.selectedBusiness.name ?? "",
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 22.0,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
+                shopReviews,
+                //Type
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 20.0,
                   ),
                   child: Text(
-                    'Type: ${widget.selectedBusiness.bType ?? ""}',
+                    '${widget.selectedBusiness.category ?? ""}',
                     strutStyle: StrutStyle(
                       fontSize: 20,
                     ),
                     style: TextStyle(
+                      color: HexColor('#757575'),
                       fontSize: 16,
                     ),
                   ),
                 ),
+                //Open or Close Indicator
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 20.0,
                   ),
                   child: Text(
-                    'Open: Closes 7pm',
+                    'Closes 7pm',
                     strutStyle: StrutStyle(
                       fontSize: 20,
                     ),
                     style: TextStyle(
+                      color: HexColor('#757575'),
                       fontSize: 16,
                     ),
                   ),
                 ),
+                //Call
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 20.0,
@@ -251,7 +323,13 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                             fontSize: 16,
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          launchUrl(
+                            Uri.parse(
+                              "tel://${widget.selectedBusiness.phone}",
+                            ),
+                          );
+                        },
                       ),
                       Spacer(),
                       ActionChip(
@@ -275,7 +353,7 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                         backgroundColor: secondaryColor,
                         onPressed: () {
                           Share.share(
-                              'check out my website http://rxfarm91.cse.buffalo.edu:500/',
+                              'check out openapp website http://openapponline.com/',
                               subject:
                                   'Reserve your favourite spot in an instance!');
                         },
@@ -304,7 +382,24 @@ class _BusinessOverviewState extends State<BusinessOverview> {
                     Icons.location_on_outlined,
                     color: secondaryColor,
                   ),
-                  title: Text('$address'),
+                  title: Text(
+                      '${widget.selectedBusiness.location!.formattedAddress}'),
+                ),
+
+                Divider(),
+                ListTile(
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                  ),
+                  leading: Icon(
+                    Icons.description_rounded,
+                    color: secondaryColor,
+                  ),
+                  title: Text(
+                    '${widget.selectedBusiness.description ?? ""}',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(),
+                  ),
                 ),
                 Divider(),
                 ListTile(
