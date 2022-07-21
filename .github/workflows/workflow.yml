@@ -6,7 +6,7 @@ name: Flutter CICD
 on:
   push:
     branches:
-    - openapp
+    - red
 
 jobs:
   build_openapp_android:
@@ -18,7 +18,7 @@ jobs:
       with:
         channel: 'stable' # or: 'beta' or 'master'
     - run: flutter --version
-    - run: flutter build apk --debug
+    - run: flutter build apk --release
     - uses: actions/upload-artifact@v1
       with:
         name: release-apk
