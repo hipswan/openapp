@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:openapp/model/service.dart';
+
 class Shop {
   Shop({
     this.location,
@@ -103,15 +105,22 @@ class Shop {
         description: json["description"],
         images: json["images"].map<String>((x) => x["url"].toString()).toList(),
         phone: json["phone"],
-        services: json["services"],
+        services: json["services"]
+                ?.map<Service>((x) => Service.fromJson(x))
+                .toList() ??
+            [],
         city: json["city"],
         state: json["state"],
         country: json["country"],
         rating: json["rating"],
         license: json["license"],
         isVerified: json["isVerified"],
-        category: json["category"]["title"],
-        categoryId: json["category"]["_id"],
+        category: json["category"] is String
+            ? json["category"]
+            : (json["category"]?["title"] ?? ""),
+        categoryId: json["category"] is String
+            ? json["category"]
+            : json["category"]?["_id"] ?? "",
         reviews: json["reviews"],
         v: json["__v"],
       );

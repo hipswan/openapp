@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:openapp/model/shop.dart';
 
 import '../../utility/Network/network_connectivity.dart';
 import '../../utility/appurl.dart';
 import '../../pages/business/business_home.dart';
 
+import '../pages/login_page.dart';
 import 'hex_color.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
@@ -21,7 +23,8 @@ import 'dart:developer' as dev;
 
 // ]
 class InfoWall extends StatefulWidget {
-  const InfoWall({Key? key}) : super(key: key);
+  final Shop? selectedBusiness;
+  const InfoWall({Key? key, this.selectedBusiness}) : super(key: key);
 
   @override
   State<InfoWall> createState() => _InfoWallState();
@@ -44,9 +47,9 @@ class _InfoWallState extends State<InfoWall> {
   Future getBusinessHours() async {
     if (await CheckConnectivity.checkInternet()) {
       try {
-        var url = AppConstant.getBusinesssHourById(currentBusiness?.bId);
+        var url = AppConstant.getBusinesssHourById(widget.selectedBusiness!.id);
         var response = await http.get(Uri.parse('$url'), headers: {
-          'Authorization': 'Bearer ${currentBusiness?.token}',
+          'x-auth-token': '${currentCustomer?.token}',
         });
 
         if (response.statusCode == 200) {

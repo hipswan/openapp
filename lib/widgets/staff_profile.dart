@@ -55,7 +55,7 @@ class _StaffProfileState extends State<StaffProfile> {
           child: Column(
             children: [
               Text(
-                '${widget.staff.desc}',
+                '${widget.staff.email}',
                 textAlign: TextAlign.justify,
                 style: TextStyle(
                   fontSize: 14,
@@ -199,7 +199,7 @@ class _StaffProfileState extends State<StaffProfile> {
                           tag: widget.key.hashCode,
                           child: CircleAvatar(
                             backgroundImage: AssetImage(
-                              '${widget.staff.profilePicture}',
+                              'assets/images/icons/avatar.png',
                             ),
                           ),
                         ),
@@ -227,26 +227,26 @@ class _StaffProfileState extends State<StaffProfile> {
                   Expanded(
                     child: ConnectTile(
                       asset: 'assets/images/connects/tiktok_logo.png',
-                      label: '@${widget.staff.tiktokProfile}',
+                      label: '@',
                     ),
                   ),
                   Expanded(
                     child: ConnectTile(
                       asset: 'assets/images/connects/fb_logo.png',
-                      label: '@${widget.staff.fbProfile}',
+                      label: '@',
                     ),
                   ),
                   Expanded(
                     child: ConnectTile(
                       asset: 'assets/images/connects/ig_logo.png',
-                      label: '@${widget.staff.igProfile}',
+                      label: '@',
                     ),
                   ),
                 ],
               ),
             ),
             staffDescription,
-            shopDescriptionDetails(widget.staff.desc!),
+            shopDescriptionDetails(widget.staff.email!),
           ],
         ),
       ),

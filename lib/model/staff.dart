@@ -7,43 +7,35 @@ import 'dart:convert';
 class Staff {
   Staff({
     this.id,
-    this.bId,
-    this.firstName,
-    this.igProfile,
-    this.fbProfile,
-    this.tiktokProfile,
-    this.desc,
-    this.profilePicture,
+    this.firstname,
+    this.lastname,
+    this.email,
+    this.phone,
+    this.v,
   });
-  int? id;
 
-  int? bId;
-  String? firstName;
-  String? igProfile;
-  String? fbProfile;
-  String? tiktokProfile;
-  String? desc;
-  String? profilePicture;
+  final String? id;
+  final String? firstname;
+  final String? lastname;
+  final String? email;
+  final String? phone;
+  final int? v;
 
   Staff copyWith({
-    int? bId,
-    int? id,
-    String? firstName,
-    String? igProfile,
-    String? fbProfile,
-    String? tiktokProfile,
-    String? desc,
-    String? profilePicture,
+    String? id,
+    String? firstname,
+    String? lastname,
+    String? email,
+    String? phone,
+    int? v,
   }) =>
       Staff(
-        bId: bId ?? this.bId,
         id: id ?? this.id,
-        firstName: firstName ?? this.firstName,
-        igProfile: igProfile ?? this.igProfile,
-        fbProfile: fbProfile ?? this.fbProfile,
-        tiktokProfile: tiktokProfile ?? this.tiktokProfile,
-        desc: desc ?? this.desc,
-        profilePicture: profilePicture ?? this.profilePicture,
+        firstname: firstname ?? this.firstname,
+        lastname: lastname ?? this.lastname,
+        email: email ?? this.email,
+        phone: phone ?? this.phone,
+        v: v ?? this.v,
       );
 
   factory Staff.fromRawJson(String str) => Staff.fromJson(json.decode(str));
@@ -51,24 +43,20 @@ class Staff {
   String toRawJson() => json.encode(toJson());
 
   factory Staff.fromJson(Map<String, dynamic> json) => Staff(
-        bId: json["bId"],
-        id: json["id"],
-        firstName: json["firstName"],
-        igProfile: json["igProfile"],
-        fbProfile: json["fbProfile"],
-        tiktokProfile: json["tiktokProfile"],
-        desc: json["desc"],
-        profilePicture: json["profilePicture"],
+        id: json["_id"],
+        firstname: json["firstname"],
+        lastname: json["lastname"],
+        email: json["email"],
+        phone: json["phone"],
+        v: json["__v"],
       );
 
   Map<String, dynamic> toJson() => {
-        "bId": bId,
-        "id": id,
-        "firstName": firstName,
-        "igProfile": igProfile,
-        "fbProfile": fbProfile,
-        "tiktokProfile": tiktokProfile,
-        "desc": desc,
-        "profilePicture": profilePicture,
+        "_id": id,
+        "firstname": firstname,
+        "lastname": lastname,
+        "email": email,
+        "phone": phone,
+        "__v": v,
       };
 }

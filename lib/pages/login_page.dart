@@ -29,7 +29,7 @@ class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
   final _formKey = GlobalKey<FormState>();
 
-  final emailId = TextEditingController(text: "tpro@test.com");
+  final emailId = TextEditingController(text: "samxin@test.com");
   final password = TextEditingController(text: "qqq");
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();

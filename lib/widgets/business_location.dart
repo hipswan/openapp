@@ -11,9 +11,11 @@ import 'package:http/http.dart' as http;
 import 'dart:developer' as dev;
 
 import '../../utility/appurl.dart';
+import '../model/shop.dart';
 
 class BusinessLocation extends StatefulWidget {
-  const BusinessLocation({Key? key}) : super(key: key);
+  final Shop? selectedBusiness;
+  const BusinessLocation({Key? key, this.selectedBusiness}) : super(key: key);
 
   @override
   State<BusinessLocation> createState() => _BusinessLocationState();
@@ -27,14 +29,13 @@ class _BusinessLocationState extends State<BusinessLocation> {
   @override
   void initState() {
     // TODO: implement initState
-    if (currentBusiness != null &&
-        currentBusiness?.lat != null &&
-        currentBusiness!.lat!.isNotEmpty &&
-        currentBusiness?.long != null &&
-        currentBusiness!.long!.isNotEmpty) {
+    if (widget.selectedBusiness != null &&
+        widget.selectedBusiness!.location != null &&
+        widget.selectedBusiness?.location?.coordinates != null &&
+        widget.selectedBusiness?.location?.coordinates?.length == 2) {
       _position = Position(
-        latitude: double.parse(currentBusiness?.lat ?? ''),
-        longitude: double.parse(currentBusiness?.long ?? ''),
+        latitude: widget.selectedBusiness!.location!.coordinates![1],
+        longitude: widget.selectedBusiness!.location!.coordinates![0],
         accuracy: 0.0,
         altitude: 0.0,
         speed: 0.0,
@@ -42,13 +43,11 @@ class _BusinessLocationState extends State<BusinessLocation> {
         heading: 0.0,
         speedAccuracy: 0.0,
       );
-      _getAddress(_position).then((value) {
-        _location = value;
+      _location = widget.selectedBusiness!.location!.formattedAddress!;
 
-        setState(() {
-          _islocation = true;
-          _isloading = false;
-        });
+      setState(() {
+        _islocation = true;
+        _isloading = false;
       });
     } else {
       setState(() {
@@ -118,33 +117,33 @@ class _BusinessLocationState extends State<BusinessLocation> {
     }
   }
 
-  Future updateBusinessLocation() async {
-    if (await CheckConnectivity.checkInternet()) {
-      try {
-        var body = {
-          "bId": currentBusiness?.bId.toString(),
-          "lat": _position?.latitude.toString(),
-          "long": _position?.longitude.toString(),
-        };
-        var url = AppConstant.getBusiness(currentBusiness?.bId);
-        var response = await http.patch(
-          Uri.parse('$url'),
-          body: body,
-        );
+  // Future updateBusinessLocation() async {
+  //   if (await CheckConnectivity.checkInternet()) {
+  //     try {
+  //       var body = {
+  //         "bId": widget.selectedBusiness?.bId.toString(),
+  //         "lat": _position?.latitude.toString(),
+  //         "long": _position?.longitude.toString(),
+  //       };
+  //       var url = AppConstant.getBusiness(widget.selectedBusiness?.bId);
+  //       var response = await http.patch(
+  //         Uri.parse('$url'),
+  //         body: body,
+  //       );
 
-        if (response.statusCode == 200) {
-          //  json.decode(response.body);
-          dev.log('added/updated business location');
-        } else {
-          throw Exception('Failed to update business location');
-        }
-      } catch (e) {
-        throw Exception('Failed to connect to server');
-      }
-    } else {
-      throw Exception('Failed to connect to Intenet');
-    }
-  }
+  //       if (response.statusCode == 200) {
+  //         //  json.decode(response.body);
+  //         dev.log('added/updated business location');
+  //       } else {
+  //         throw Exception('Failed to update business location');
+  //       }
+  //     } catch (e) {
+  //       throw Exception('Failed to connect to server');
+  //     }
+  //   } else {
+  //     throw Exception('Failed to connect to Intenet');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -198,10 +197,11 @@ class _BusinessLocationState extends State<BusinessLocation> {
                           _position = position;
                           _islocation = true;
                           _isloading = false;
-                          await updateBusinessLocation();
-                          currentBusiness?.lat = _position?.latitude.toString();
-                          currentBusiness?.long =
-                              _position?.longitude.toString();
+                          // await updateBusinessLocation();
+                          // widget.selectedBusiness?.lat =
+                          //     _position?.latitude.toString();
+                          // widget.selectedBusiness?.long =
+                          //     _position?.longitude.toString();
                           setState(() {});
                         } else {
                           setState(() {
@@ -218,6 +218,7 @@ class _BusinessLocationState extends State<BusinessLocation> {
                 ? MapBox(
                     position: _position!,
                     location: _location,
+                    title: '${widget.selectedBusiness?.name}',
                   )
                 : Center(
                     child: CircularProgressIndicator(),
@@ -230,10 +231,12 @@ class _BusinessLocationState extends State<BusinessLocation> {
 class MapBox extends StatelessWidget {
   final Position position;
   final String location;
+  final String title;
   MapBox({
     Key? key,
     required this.position,
     required this.location,
+    required this.title,
   }) : super(key: key);
 
   @override
@@ -265,8 +268,8 @@ class MapBox extends StatelessWidget {
                   Marker(
                     markerId: MarkerId('1'),
                     infoWindow: InfoWindow(
-                      title: '${currentBusiness?.bName}',
-                      snippet: '${currentBusiness?.description}',
+                      title: title,
+                      snippet: location,
                     ),
                     position: LatLng(
                       position.latitude,

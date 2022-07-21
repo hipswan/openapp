@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:openapp/pages/login_page.dart';
 import 'package:openapp/widgets/ticket_view.dart';
 
 import '../../constant.dart';
@@ -11,53 +13,36 @@ import '../../utility/Network/network_connectivity.dart';
 import '../../utility/appurl.dart';
 import '../../pages/business/business_home.dart';
 
-import 'Form/service_form.dart';
+import '../model/shop.dart';
+import 'form/service_form.dart';
 import 'hex_color.dart';
 import 'package:http/http.dart' as http;
 
-class Services extends StatefulWidget {
-  const Services({Key? key}) : super(key: key);
+class BusinessService extends StatefulWidget {
+  final Shop? selectedBusiness;
+  const BusinessService({Key? key, this.selectedBusiness}) : super(key: key);
 
   @override
-  State<Services> createState() => _ServicesState();
+  State<BusinessService> createState() => _BusinessServiceState();
 }
 
-class _ServicesState extends State<Services> {
-  var _services = [
-    {
-      'name': 'Service 1',
-      'description': 'Description of Service 1',
-      'price': '\$10',
-      'image': 'assets/images/service1.png',
-    },
-    {
-      'name': 'Service 2',
-      'description': 'Description of Service 2',
-      'price': '\$20',
-      'image': 'assets/images/service2.png',
-    }
-  ];
-
+class _BusinessServiceState extends State<BusinessService> {
   Future<List<Service>> getBusinessServices() async {
-    await Future.delayed(Duration(milliseconds: 200));
-    if (currentBusiness!.services != null &&
-        currentBusiness!.services!.length > 0) {
-      return currentBusiness!.services!;
-    } else if (await CheckConnectivity.checkInternet()) {
+    String? businessId = widget.selectedBusiness?.id ?? '';
+
+    if (await CheckConnectivity.checkInternet()) {
       try {
-        var url = AppConstant.getBusinessService(
-          currentBusiness?.bId,
+        String url = AppConstant.getBusinessService(businessId);
+        var request = http.Request(
+          'GET',
+          Uri.parse(url),
         );
-        var response = await http.get(
-          Uri.parse('$url)'),
-        );
+        request.bodyFields = {};
+
+        http.StreamedResponse response = await request.send();
 
         if (response.statusCode == 200) {
-          //  json.decode(response.body);
-          var parsedJson = json.decode(response.body);
-          currentBusiness!.services = parsedJson
-              .map<Service>((json) => Service.fromJson(json))
-              .toList();
+          var parsedJson = json.decode(await response.stream.bytesToString());
           return parsedJson
               .map<Service>((json) => Service.fromJson(json))
               .toList();
@@ -72,53 +57,9 @@ class _ServicesState extends State<Services> {
     }
   }
 
-  Future deleteBusinessService(serviceId) async {
-    if (await CheckConnectivity.checkInternet()) {
-      try {
-        var response = await http.delete(
-          Uri.parse('${AppConstant.getBusinessService(
-            currentBusiness?.bId,
-          )})'),
-        );
-
-        if (response.statusCode == 200) {
-          //  json.decode(response.body);
-          // var parsedJson = json.decode(response.body);
-          // return parsedJson
-          //     .map<Service>((json) => Service.fromJson(json))
-          //     .toList();
-          currentBusiness!.services = currentBusiness!.services
-              ?.where((service) => service.id != serviceId)
-              .toList();
-        } else {
-          throw Exception('Failed to fetch business hours');
-        }
-      } catch (e) {
-        throw Exception('Failed to connect to server');
-      }
-    } else {
-      throw Exception('Failed to connect to internet');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => ServiceForm(),
-          //   ),
-          // );
-        },
-        backgroundColor: HexColor('#143F6B'),
-        child: Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
-      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(
           vertical: 8.0,
@@ -170,28 +111,64 @@ class _ServicesState extends State<Services> {
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 8.0,
                                     ),
-                                    child: TicketView(
+                                    child: ListTile(
                                       key: Key(service.name!),
-                                      serviceName: service.name.toString(),
-                                      serviceDescription: service.description,
-                                      servicePrice: service.price.toString(),
-                                      onEdit: () {
-                                        // Navigator.push(
-                                        //   context,
-                                        //   MaterialPageRoute(
-                                        //     builder: (context) => ServiceForm(
-                                        //         selectedService: service),
-                                        //   ),
-                                        // );
-                                      },
-                                      onDelete: () async {
-                                        await deleteBusinessService(service.id);
-                                        setState(() {});
-                                        // setState(() {
-                                        //   snapshot.data!.remove(service);
-                                        // });
-                                      },
+                                      leading: ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          10,
+                                        ),
+                                        child: service.images![0].isEmpty
+                                            ? Image.asset(
+                                                'assets/images/icons/open_app.png',
+                                                fit: BoxFit.cover,
+                                              )
+                                            : CachedNetworkImage(
+                                                width: 100,
+                                                height: 100,
+                                                imageUrl:
+                                                    '${service.images![0]}',
+                                                errorWidget: (context, error,
+                                                        errorDynamic) =>
+                                                    Image.asset(
+                                                        'assets/images/icons/open_app.png'),
+                                                fit: BoxFit.cover,
+                                              ),
+                                      ),
 
+                                      title: Text(
+                                        service.name.toString(),
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ServiceForm(
+                                            selectedService: service,
+                                            isEditable: false,
+                                          ),
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        service.description.toString(),
+                                        strutStyle: StrutStyle(
+                                          fontSize: 20,
+                                        ),
+                                        maxLines: 2,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      trailing: Text(
+                                        '\$ ${service.price.toString()}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                       // image: 'assets/images/service1.png',
                                     ),
                                   ),

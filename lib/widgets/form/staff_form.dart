@@ -178,12 +178,14 @@ class _StaffFormState extends State<StaffForm> {
 
   void _updateStaffProperties() {
     if (widget.selectedStaff != null) {
-      _name.text = widget.selectedStaff?.firstName ?? '';
-      _igHandle.text = widget.selectedStaff?.igProfile ?? '';
-      _fbHandle.text = widget.selectedStaff?.fbProfile ?? '';
-      _tiktokHandle.text = widget.selectedStaff?.tiktokProfile ?? '';
-      networkImgPath = widget.selectedStaff?.profilePicture ?? '';
-      _description.text = widget.selectedStaff?.desc ?? '';
+      _name.text =
+          '${widget.selectedStaff?.firstname} ${widget.selectedStaff?.lastname}' ??
+              '';
+      _igHandle.text = '';
+      _fbHandle.text = '';
+      _tiktokHandle.text = '';
+      networkImgPath = '';
+      _description.text = '';
     } else {
       _name.text = '';
       _igHandle.text = '';
@@ -238,12 +240,12 @@ class _StaffFormState extends State<StaffForm> {
                   if (_formKey.currentState!.validate() && imagePath != null) {
                     uploadImage().then((asset) async {
                       await maintainStaff(asset);
-                      widget.selectedStaff?.profilePicture = asset;
+                      // widget.selectedStaff?.profilePicture = asset;
                       Navigator.pop(context);
                     }).catchError((e) => dev.log(e));
                   } else if (networkImgPath != null && imagePath == null) {
                     await maintainStaff(networkImgPath);
-                    widget.selectedStaff?.profilePicture = networkImgPath;
+                    // widget.selectedStaff?.profilePicture = networkImgPath;
                     Navigator.pop(context);
                   }
                 },

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:openapp/model/shop.dart';
 import 'package:openapp/widgets/Form/staff_form.dart';
 import 'package:openapp/widgets/staff_card.dart';
 import 'package:openapp/widgets/staff_profile.dart';
@@ -12,11 +13,13 @@ import '../../utility/Network/network_connectivity.dart';
 import '../../utility/appurl.dart';
 import '../../pages/business/business_home.dart';
 
+import '../pages/login_page.dart';
 import 'hex_color.dart';
 import 'package:http/http.dart' as http;
 
 class Staffs extends StatefulWidget {
-  const Staffs({Key? key}) : super(key: key);
+  final Shop? selectedBusiness;
+  const Staffs({Key? key, this.selectedBusiness}) : super(key: key);
 
   @override
   State<Staffs> createState() => _StaffsState();
@@ -33,22 +36,22 @@ class _StaffsState extends State<Staffs> {
     if (await CheckConnectivity.checkInternet()) {
       try {
         var url = AppConstant.getBusinessStaff(
-          currentBusiness?.bId,
+          widget.selectedBusiness?.id,
         );
         var response = await http.get(
           Uri.parse('$url'),
           headers: {
-            'Authorization': 'Bearer ${currentBusiness?.token}',
+            'x-auth-token': '${currentCustomer?.token}',
           },
         );
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
           //  json.decode(response.body);
           var parsedJson = json.decode(response.body);
 
-          currentBusiness!.staff =
-              parsedJson.map<Staff>((json) => Staff.fromJson(json)).toList();
-          return parsedJson.map<Staff>((json) => Staff.fromJson(json)).toList();
+          return parsedJson["staff"]
+              .map<Staff>((json) => Staff.fromJson(json))
+              .toList();
         } else {
           throw Exception('Failed to fetch business staff');
         }
@@ -78,9 +81,9 @@ class _StaffsState extends State<Staffs> {
           // return parsedJson
           //     .map<Service>((json) => Service.fromJson(json))
           //     .toList();
-          currentBusiness!.staff = currentBusiness!.staff
-              ?.where((staff) => staff.bId != staffId)
-              .toList();
+          // currentBusiness!.staff = currentBusiness!.staff
+          //     ?.where((staff) => staff.bId != staffId)
+          //     .toList();
         } else {
           throw Exception('Failed to fetch business hours');
         }
@@ -212,13 +215,17 @@ class _StaffsState extends State<Staffs> {
                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   SvgPicture.asset(
                                     'assets/images/icons/empty.svg',
                                     width: 150,
                                     height: 150,
                                   ),
-                                  Text('No services found'),
+                                  SizedBox(
+                                    height: 20,
+                                  ),
+                                  Text('No Staff Details Found'),
                                 ],
                               ),
                             )
@@ -235,9 +242,10 @@ class _StaffsState extends State<Staffs> {
                               itemBuilder: (context, index) {
                                 return StaffCard(
                                   key: ValueKey(index),
-                                  name: '${listOfStaff[index].firstName}',
+                                  name:
+                                      '${listOfStaff[index].firstname ?? ""} ${listOfStaff[index].lastname}',
                                   position: 'Staff',
-                                  image: '${listOfStaff[index].profilePicture}',
+                                  image: '',
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -246,7 +254,7 @@ class _StaffsState extends State<Staffs> {
                                           staff: listOfStaff[index],
                                           onDelete: () async {
                                             await deleteBusinessStaff(
-                                                listOfStaff[index].bId);
+                                                listOfStaff[index].id);
                                             setState(() {});
                                           },
                                           onEdit: () {

@@ -19,6 +19,14 @@ class AppConstant {
   //Business
   static getBusinesses(bId) => BASE_URL + "categories/$bId/businesses";
 
+  static getBusinessById(bId) => BASE_URL + "businesses/$bId";
+
+  static const CUSTOMER_BUSINESS = BASE_URL + "business";
+
+  static const POST_BUSINESS_DETAILS = BASE_URL + "businesses";
+
+  static getBusinessService(bId) => BASE_URL + "businesses/$bId/services";
+
   static getBusiness(bId) => BASE_URL + "business/$bId";
 
   static const PICTURE_ASSET_PATH =
@@ -42,7 +50,6 @@ class AppConstant {
   //Services
   static const BUSINESS_SERVICES = BASE_URL + "business-services";
   static updateBusinessService(bId) => BASE_URL + "business-services/$bId";
-  static getBusinessService(bId) => BASE_URL + "business-services?bId=$bId";
   static getBusinessServiceById(serviceId) =>
       BASE_URL + "business-services/$serviceId";
 
@@ -50,12 +57,11 @@ class AppConstant {
       BASE_URL + "business-services/$bId/$sId";
   static GET_SERVICE_BY_ID(id) => BASE_URL + "business-services?bId=$id";
 
-  static String getBusinessById(id) => BASE_URL + "business/$id";
   //staff
   static const String GET_STAFF_BY_BUSINESS_ID = "business_login";
 
   static addBusinessStaff(bId) => BASE_URL + 'business/$bId/staff';
-  static getBusinessStaff(bId) => BASE_URL + 'business/$bId/staff';
+  static getBusinessStaff(bId) => BASE_URL + 'businesses/$bId/staff';
   static deleteBusinessStaff(bId, sId) =>
       BASE_URL + 'business/$bId/staff/$sId/delete';
   static getBusinessStaffByID(bId, staffId) => "business/$bId/staff/$staffId";
@@ -72,6 +78,12 @@ class AppConstant {
 
   //Appointment
   static const POST_APPOINTMENT = "business_login";
+  static const USER_BOOKINGS = BASE_URL + "users/user/bookings";
+  static postNote(bId) => BASE_URL + "users/user/bookings/$bId/note";
+  static bookAppointment(bId) => BASE_URL + "businesses/$bId/slots";
+  static getSlots({businessId, String? date, serviceId}) =>
+      BASE_URL +
+      "businesses/${businessId}/slots?dateString=${date}&serviceId=${serviceId}";
 
   static const BOOK_APPOINTMENT = BASE_URL + "appointments/book";
 
@@ -86,7 +98,7 @@ class AppConstant {
 
   static const BUSINESS_HOURS = BASE_URL + "businness-hours";
 
-  static getBusinesssHourById(bId) => BASE_URL + "businness-hours?bId=$bId";
+  static getBusinesssHourById(bId) => BASE_URL + "businesses/$bId/hours";
 
   static updateBusinessHoursByID(id) => "business_login";
 

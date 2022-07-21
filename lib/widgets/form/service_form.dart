@@ -16,7 +16,10 @@ import '../../pages/business/business_home.dart';
 
 class ServiceForm extends StatefulWidget {
   final Service? selectedService;
-  const ServiceForm({Key? key, this.selectedService}) : super(key: key);
+  final bool isEditable;
+  const ServiceForm(
+      {Key? key, required this.selectedService, required this.isEditable})
+      : super(key: key);
 
   @override
   State<ServiceForm> createState() => _ServiceFormState();
@@ -145,7 +148,7 @@ class _ServiceFormState extends State<ServiceForm> {
           );
         } else {
           var url =
-              AppConstant.updateBusinessService(widget.selectedService?.bId);
+              AppConstant.updateBusinessService(widget.selectedService?.id);
           response = await http.patch(
             Uri.parse('$url'),
             body: body,
@@ -167,19 +170,11 @@ class _ServiceFormState extends State<ServiceForm> {
   }
 
   void _updateStaffProperties() {
-    if (widget.selectedService != null) {
-      _name.text = widget.selectedService?.serviceName ?? '';
-      _price.text = widget.selectedService?.cost.toString() ?? '';
-      _duration.text = widget.selectedService?.time.toString() ?? '';
-      _description.text = widget.selectedService?.desc ?? '';
-      networkImgPath = widget.selectedService?.picture ?? '';
-    } else {
-      _name.text = '';
-      _price.text = '';
-      _duration.text = '';
-      networkImgPath = '';
-      _description.text = '';
-    }
+    _name.text = widget.selectedService?.name ?? "";
+    _price.text = widget.selectedService?.price.toString() ?? "";
+    _duration.text = widget.selectedService?.duration.toString() ?? "";
+    _description.text = widget.selectedService?.description ?? "";
+    networkImgPath = widget.selectedService?.images![0] ?? '';
   }
 
   @override
@@ -202,7 +197,9 @@ class _ServiceFormState extends State<ServiceForm> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: Text('Maintain Services'),
+          title: widget.isEditable
+              ? Text('Maintain Services')
+              : Text('${widget.selectedService?.name}'),
           centerTitle: true,
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
@@ -217,43 +214,47 @@ class _ServiceFormState extends State<ServiceForm> {
             },
           ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(secondaryColor),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-                onPressed: () async {
-                  FocusScopeNode currentFocus = FocusScope.of(context);
+            widget.isEditable
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(secondaryColor),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                      onPressed: () async {
+                        FocusScopeNode currentFocus = FocusScope.of(context);
 
-                  if (!currentFocus.hasPrimaryFocus) {
-                    currentFocus.unfocus();
-                  }
-                  if (_formKey.currentState!.validate() && imagePath != null) {
-                    uploadImage().then((asset) async {
-                      await maintainService(asset);
-                      widget.selectedService?.picture = asset;
-                      Navigator.pop(context);
-                    }).catchError((e) => dev.log(e.toString()));
-                  } else if (imagePath == null) {
-                    await maintainService(networkImgPath);
-                    widget.selectedService?.picture = networkImgPath;
-                    Navigator.pop(context);
-                  }
-                },
-                child: Text(
-                  'Save',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+                        if (!currentFocus.hasPrimaryFocus) {
+                          currentFocus.unfocus();
+                        }
+                        if (_formKey.currentState!.validate() &&
+                            imagePath != null) {
+                          uploadImage().then((asset) async {
+                            await maintainService(asset);
+                            widget.selectedService?.images![0] = asset;
+                            Navigator.pop(context);
+                          }).catchError((e) => dev.log(e.toString()));
+                        } else if (imagePath == null) {
+                          await maintainService(networkImgPath);
+                          widget.selectedService?.images![0] = networkImgPath;
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Text(
+                        'Save',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  )
+                : Text(''),
           ],
         ),
         body: Container(
@@ -268,7 +269,7 @@ class _ServiceFormState extends State<ServiceForm> {
                     0.8,
                   ),
                   child: Text(
-                    'Saved to: /businessname',
+                    'Offered @: ${widget.selectedService?.location?.formattedAddress.toString() ?? ""}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -284,43 +285,45 @@ class _ServiceFormState extends State<ServiceForm> {
                               20.0,
                             ),
                             height: 200,
-                            child: networkImgPath!.contains('svg')
-                                ? SvgPicture.network(
-                                    '${AppConstant.PICTURE_ASSET_PATH}/$networkImgPath')
+                            child: networkImgPath.contains('svg')
+                                ? SvgPicture.network('$networkImgPath')
                                 : Image.network(
-                                    '${AppConstant.PICTURE_ASSET_PATH}/$networkImgPath',
+                                    '$networkImgPath',
                                     fit: BoxFit.cover,
                                   ),
                           ),
-                          Positioned(
-                            right: 10,
-                            bottom: 10,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                selectImage(context);
+                          widget.isEditable
+                              ? Positioned(
+                                  right: 10,
+                                  bottom: 10,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      selectImage(context);
 
-                                setState(() {
-                                  networkImgPath = "";
-                                });
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
-                                  Colors.red.shade100,
-                                ),
-                                shape: MaterialStateProperty.all(
-                                  CircleBorder(),
-                                ),
-                                padding: MaterialStateProperty.all(
-                                  EdgeInsets.all(16),
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.edit,
-                                size: 20,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
+                                      setState(() {
+                                        networkImgPath = "";
+                                      });
+                                    },
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          MaterialStateProperty.all(
+                                        Colors.red.shade100,
+                                      ),
+                                      shape: MaterialStateProperty.all(
+                                        CircleBorder(),
+                                      ),
+                                      padding: MaterialStateProperty.all(
+                                        EdgeInsets.all(16),
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                )
+                              : Container(),
                         ],
                       )
                     : imagePath != null
@@ -352,31 +355,34 @@ class _ServiceFormState extends State<ServiceForm> {
                                   ),
                                 ),
                               ),
-                              Positioned(
-                                right: 10,
-                                bottom: 10,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    selectImage(context);
-                                  },
-                                  style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(
-                                      Colors.red.shade100,
-                                    ),
-                                    shape: MaterialStateProperty.all(
-                                      CircleBorder(),
-                                    ),
-                                    padding: MaterialStateProperty.all(
-                                      EdgeInsets.all(16),
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    Icons.edit,
-                                    size: 20,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
+                              widget.isEditable
+                                  ? Positioned(
+                                      right: 10,
+                                      bottom: 10,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          selectImage(context);
+                                        },
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                            Colors.red.shade100,
+                                          ),
+                                          shape: MaterialStateProperty.all(
+                                            CircleBorder(),
+                                          ),
+                                          padding: MaterialStateProperty.all(
+                                            EdgeInsets.all(16),
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    )
+                                  : Container(),
                             ],
                           )
                         : Padding(
@@ -416,6 +422,7 @@ class _ServiceFormState extends State<ServiceForm> {
                               ],
                             ),
                           ),
+                //Service name
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
@@ -426,6 +433,7 @@ class _ServiceFormState extends State<ServiceForm> {
                       }
                       return null;
                     },
+                    enabled: widget.isEditable,
                     decoration: InputDecoration(
                       labelText: 'Service Name',
                       border: OutlineInputBorder(
@@ -445,6 +453,7 @@ class _ServiceFormState extends State<ServiceForm> {
                       return null;
                     },
                     keyboardType: TextInputType.number,
+                    enabled: widget.isEditable,
                     decoration: InputDecoration(
                       labelText: 'Service Price',
                       hintText: 'in \$',
@@ -463,6 +472,7 @@ class _ServiceFormState extends State<ServiceForm> {
                       return null;
                     },
                     keyboardType: TextInputType.number,
+                    enabled: widget.isEditable,
                     decoration: InputDecoration(
                       labelText: 'Service Duration',
                       hintText: 'in minutes',
@@ -481,6 +491,7 @@ class _ServiceFormState extends State<ServiceForm> {
                       }
                       return null;
                     },
+                    enabled: widget.isEditable,
                     decoration: InputDecoration(
                       labelText: 'Service Description',
                       border: OutlineInputBorder(),

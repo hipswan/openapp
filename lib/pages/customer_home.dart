@@ -2,6 +2,8 @@ import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/pages/business/business_details.dart';
+import 'package:openapp/pages/business/business_home.dart';
 import 'package:openapp/pages/customer/client_home.dart';
 
 class CustomerHome extends StatefulWidget {
@@ -23,9 +25,8 @@ class _CustomerHomeState extends State<CustomerHome> {
         controller: pageController,
         children: <Widget>[
           ClientMap(),
-          Container(
-            color: Colors.blue,
-          ),
+          BusinessHome(),
+          //TODO: Add Profile Page
           Container(
             color: Colors.green,
           ),

@@ -1,6 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:openapp/constant.dart';
+import 'package:openapp/pages/business/business_register.dart';
+import 'package:openapp/pages/login_page.dart';
+import 'package:openapp/widgets/form/business_form.dart';
 
 import '../../utility/appurl.dart';
 import '../pages/business/business_home.dart';
@@ -27,25 +30,15 @@ class UserDrawer extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: currentBusiness?.image1 != null &&
-                            currentBusiness?.image1 != ''
-                        ? CachedNetworkImage(
-                            imageUrl:
-                                '${AppConstant.PICTURE_ASSET_PATH}/${currentBusiness?.image1}',
-                            placeholder: (context, value) => Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            color: Colors.black12,
-                            child: Image.asset(
-                              'assets/images/icons/calendar_circle.png',
-                              color: Colors.black54,
-                              colorBlendMode: BlendMode.darken,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                    child: Container(
+                      color: Colors.black12,
+                      child: Image.asset(
+                        'assets/images/icons/calendar_circle.png',
+                        color: Colors.black54,
+                        colorBlendMode: BlendMode.darken,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                   Padding(
                     padding: EdgeInsets.only(
@@ -65,7 +58,7 @@ class UserDrawer extends StatelessWidget {
                           ),
                           child: CircleAvatar(
                             child: Text(
-                              '${currentBusiness?.bName?.substring(0, 1).toUpperCase()}',
+                              '${currentCustomer?.firstname?.substring(0, 1).toUpperCase()}',
                               style: TextStyle(
                                 fontSize: 30.0,
                                 color: Colors.white,
@@ -83,7 +76,7 @@ class UserDrawer extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${currentBusiness?.bName}',
+                                '${currentCustomer?.email ?? ""}',
                                 style: TextStyle(
                                   fontSize: 18.0,
                                   color: Colors.white,
@@ -91,7 +84,7 @@ class UserDrawer extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '${currentBusiness?.bCity}',
+                                '${currentCustomer?.role ?? ""}',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16.0,
@@ -122,14 +115,30 @@ class UserDrawer extends StatelessWidget {
             endIndent: 22.0,
           ),
           DrawerMenu(
-            text: 'Profile',
+            text: 'Business',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BusinessProfile(),
-                ),
-              );
+              if (currentCustomer?.role?.contains('business') ?? false) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BusinessProfile(),
+                  ),
+                );
+              } else if (currentCustomer?.businessRequested ?? false) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BusinessRequested(),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BusinessForm(),
+                  ),
+                );
+              }
             },
           ),
           Divider(
@@ -170,6 +179,22 @@ class UserDrawer extends StatelessWidget {
             height: 12.0,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class BusinessRequested extends StatelessWidget {
+  const BusinessRequested({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Business Requested'),
+      ),
+      body: Center(
+        child: Text('Business Requested'),
       ),
     );
   }

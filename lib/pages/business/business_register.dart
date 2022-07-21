@@ -123,7 +123,7 @@ class _BusinessRegisterState extends State<BusinessRegister> {
           appBar: AppBar(
             backgroundColor: Colors.redAccent,
             title: Text(
-              'Business',
+              'Register Business',
             ),
             centerTitle: true,
             shape: RoundedRectangleBorder(

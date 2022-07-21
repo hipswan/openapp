@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:openapp/model/business.dart';
+import 'package:openapp/model/business_appoitnment.dart';
 import 'package:openapp/widgets/appointment_editor.dart';
 import 'package:openapp/widgets/custom_animated_navigation_bar.dart';
 import 'package:openapp/widgets/hex_color.dart';
@@ -16,17 +17,14 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'dart:developer' as dev;
 import '../../utility/Network/network_connectivity.dart';
 import '../../utility/appurl.dart';
-import 'business_services.dart';
+import '../login_page.dart';
 import 'business_staff.dart';
 import 'package:http/http.dart' as http;
 
 Business? currentBusiness;
 
 class BusinessHome extends StatefulWidget {
-  final emailId;
-  final password;
-  const BusinessHome({Key? key, required this.emailId, required this.password})
-      : super(key: key);
+  const BusinessHome({Key? key}) : super(key: key);
 
   @override
   State<BusinessHome> createState() => _BusinessHomeState();
@@ -81,33 +79,17 @@ class _BusinessHomeState extends State<BusinessHome> {
     super.initState();
   }
 
-  signInBusiness() async {
+  Future<List<BusinessAppointment>> getBusinessAppoitnment() async {
     if (await CheckConnectivity.checkInternet()) {
       try {
-        final response = await http.post(
-          Uri.parse('${AppConstant.SIGNIN}'),
-          body: {"emailId": widget.emailId, "password": widget.password},
-        );
-        if (response.statusCode == 201) {
-          return json.decode(response.body);
-        } else {
-          throw Exception('Failed to logging in business');
-        }
-      } catch (e) {
-        throw Exception('Failed to connect to server');
-      }
-    } else {
-      throw Exception('Failed to connect to Intenet');
-    }
-  }
-
-  fetchBusinessAppointments(id) async {
-    if (await CheckConnectivity.checkInternet()) {
-      try {
-        var url = AppConstant.getBusinessAppointmentByID(currentBusiness?.bId);
-        final response = await http.get(Uri.parse('$url'));
+        var url = AppConstant.USER_BOOKINGS;
+        final response = await http.get(Uri.parse('$url'),
+            headers: {'x-auth-token': '${currentCustomer?.token}'});
         if (response.statusCode == 200) {
-          return json.decode(response.body);
+          var parsedJson = json.decode(response.body);
+          return parsedJson.map<BusinessAppointment>((json) {
+            return BusinessAppointment.fromJson(json);
+          }).toList();
         } else {
           throw Exception('Failed to logging in business');
         }
@@ -117,73 +99,6 @@ class _BusinessHomeState extends State<BusinessHome> {
     } else {
       throw Exception('Failed to connect to Intenet');
     }
-  }
-
-  //TODO: get business details
-  Future<Business> getBusinessDetails() async {
-    // await _business.createBusiness();
-
-    var res = await signInBusiness();
-    dev.log(res.toString());
-    //TODO: save business details
-
-    _business.fromSignIn(res);
-
-    _loadingStatus = 'Loading business appointments...';
-    // Loader.show(
-    //   context,
-    //   isSafeAreaOverlay: false,
-    //   isBottomBarOverlay: false,
-    //   overlayFromBottom: 80,
-    //   overlayColor: Colors.black26,
-    //   progressIndicator: Material(
-    //     child: CircularProgressIndicator(backgroundColor: Colors.red),
-    //   ),
-    //   themeData: Theme.of(context).copyWith(
-    //     colorScheme:
-    //         ColorScheme.fromSwatch().copyWith(secondary: Colors.green),
-    //   ),
-    // );
-
-    res = await fetchBusinessAppointments(_business.bId);
-    //TODO: save appointments details
-    _business.saveAppointments(res);
-
-    //  _loadingStatus = 'Loading business services...';
-
-    // AwesomeDialog(
-    //   context: context,
-    //   dialogType: DialogType.INFO,
-    //   animType: AnimType.BOTTOMSLIDE,
-    //   title: 'Fetching Business Details',
-    //   desc: _loadingStatus,
-    //   btnCancelOnPress: () {},
-    //   btnOkOnPress: () {},
-    // )..show();
-    // try {
-    //   await fetchBusinessAppointments();
-    //   //TODO: save appointments details
-    //   AwesomeDialog(
-    //     context: context,
-    //     dialogType: DialogType.SUCCES,
-    //     animType: AnimType.BOTTOMSLIDE,
-    //     title: 'Fetched Business Details',
-    //     desc: _loadingStatus,
-    //     btnCancelOnPress: () {},
-    //     btnOkOnPress: () {},
-    //   )..show();
-    // } catch (e) {
-    //   throw e;
-    // }
-
-    // await _business.getBusinessServices();
-    // _loadingStatus = 'Getting business services...';
-
-    // _business.businessStreamController.sink.add(null);
-
-    // Business staff = await _business.getBusinessStaffs();
-    // _business.businessStreamController.sink.add(_business);
-    return _business;
   }
 
   /// Returns the month name based on the month value passed from date.
@@ -265,7 +180,7 @@ class _BusinessHomeState extends State<BusinessHome> {
         resizeToAvoidBottomInset: false,
         drawer: UserDrawer(),
         appBar: AppBar(
-          title: Text('Welcome!'),
+          title: Text('Appointment'),
           centerTitle: true,
           backgroundColor: Colors.redAccent,
           shape: RoundedRectangleBorder(
@@ -274,14 +189,11 @@ class _BusinessHomeState extends State<BusinessHome> {
             ),
           ),
         ),
-        body: FutureBuilder<Business>(
-            future: getBusinessDetails(),
+        body: FutureBuilder<List<BusinessAppointment>>(
+            future: getBusinessAppoitnment(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                Business business = snapshot.data!;
-                currentBusiness = business;
-                _events =
-                    _DataSource(getBusinessAppointments(business.appointments));
+                _events = _DataSource(getBusinessAppointments(snapshot.data));
 
                 return calendarController.view == CalendarView.month
                     ? Scrollbar(
@@ -366,19 +278,17 @@ class _BusinessHomeState extends State<BusinessHome> {
 
     for (BusinessAppointment appointment in businessAppointments!) {
       _appointments.add(Appointment(
-        startTime: appointment.startDateTime ?? DateTime.now(),
-        endTime: appointment.startDateTime!.add(
-          Duration(
-            minutes: 30,
-          ),
-        ),
+        startTime: appointment.startTime ?? DateTime.now(),
+        endTime: appointment.endTime ?? DateTime.now(),
         color: _colorCollection[random.nextInt(9)],
         startTimeZone: '',
+        location:
+            '${appointment.business?.phone ?? ""}@${appointment.service?.location?.formattedAddress ?? ""}@${appointment.id ?? ""}',
         endTimeZone: '',
-        notes: ' ${appointment.notes} ${appointment.emailId}',
+        notes: '${appointment.note ?? ""}',
         isAllDay: false,
         subject:
-            '${appointment.firstName} ${appointment.lastName}_${appointment.staffId}',
+            '${appointment.service?.name ?? "SERVICE-NAME"} @ ${appointment.business?.name ?? "SERVICE-NAME"}',
       ));
     }
 
@@ -473,7 +383,7 @@ class _BusinessHomeState extends State<BusinessHome> {
     final double _screenHeight = MediaQuery.of(context).size.height;
 
     List<Widget> pages = [
-      BusinessServices(),
+      Container(),
       calendarController.view == CalendarView.month
           ? Scrollbar(
               thumbVisibility: true,
@@ -580,7 +490,7 @@ class _BusinessHomeState extends State<BusinessHome> {
         onTap: calendarTapCallback,
         allowDragAndDrop: true,
         onLongPress: (CalendarLongPressDetails details) {
-          dev.log('Drag and drop is allowed in week and day view');
+          dev.log('Drag and drop is allowed in week and day view only');
         },
         onDragEnd: (AppointmentDragEndDetails appointmentDragUpdateDetails) {
           dev.log(appointmentDragUpdateDetails.appointment.toString());
